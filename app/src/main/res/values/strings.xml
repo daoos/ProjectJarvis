@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ProjectJarvis</string>
+    <string name="info_text">Click the button to activate voice command.</string>
 </resources>
