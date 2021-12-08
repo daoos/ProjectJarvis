@@ -77,19 +77,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 voiceInput.setText("Click!");
-                //Start voice recognition
-                //Decode voice input
-                //React to voice input
+                //Start voice recognition - voiceListener Class?
+                    //Decode voice input
+                        //React to voice input
             }
         });
 
     }
 
-    private void turnOn() {
-        //Turn on actuator
-    }
-
-    private void turnOff() {
-        //Turn off actuator
-    }
 }
