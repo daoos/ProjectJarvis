@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     ImageButton micBtn;
     TextView voiceInput;
 
+    //SSH-Kopplingen
     public void run(String command) { //TODO: Fixa till denna så den är mer "våran"
         String hostname = "hostname";
         String username = "username";
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Layout setup
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
