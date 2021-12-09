@@ -33,7 +33,9 @@ dependencies {
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
     implementation fileTree(dir: 'C:\\Users\\johan\\AndroidStudioProjects\\ProjectJarvis\\app\\libs', include: ['*.aar', '*.jar'], exclude: []) //the SSH Library
-    implementation group: 'com.alphacephei', name: 'vosk-android', version: '0.3.32+' //Vosk voice recog
+    implementation group: 'com.alphacephei', name: 'vosk-android', version: '0.3.34'
+    implementation 'androidx.preference:preference:1.1.1'
+    //Vosk voice recog
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'

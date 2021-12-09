@@ -54,4 +54,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.223" />
 
+    <ImageButton
+        android:id="@+id/devicesBtn"
+        android:layout_width="61dp"
+        android:layout_height="57dp"
+        android:layout_marginStart="340dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="35dp"
+        android:layout_marginBottom="95dp"
+        android:background="#00232323"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_devices" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
