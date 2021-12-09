@@ -2,7 +2,9 @@ package com.example.projectjarvis;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
@@ -26,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     //Collection for keeping track of the state of our actuators
     public HashMap<String, Boolean> toggles = new HashMap<>();
 
+    SharedPreferences prefs = getSharedPreferences("Share", Context.MODE_PRIVATE);
+
     //Layout setup
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
 
         //all the actuator buttons, turned off if null
         //TODO: Check how to control their state through Telldus or Raspberry?
-        if (toggles.get("lampSwitch") == null) {
-            toggles.put("lampSwitch", false);
-        }
+        //if (prefs.get("lampSwitch") == null) {
+        //    toggles.put("lampSwitch", false);
+        //}
 
         micBtn.setOnClickListener(new View.OnClickListener() {
             @Override
