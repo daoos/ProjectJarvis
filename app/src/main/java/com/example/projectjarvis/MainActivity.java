@@ -35,9 +35,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //EMPTY COMMENT
-
-        ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recog
+        ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recognition
         voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
@@ -54,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
                 System.out.println("Opening devices!");
             }
         });
+
     }
 
     public void getSpeechInput(View view) {
@@ -78,10 +77,25 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK && data != null) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput.setText(result.get(0));
+                    decodeInput(result);
                 }
                 break;
         }
     }
+
+    private void decodeInput(ArrayList<String> result) {
+        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
+
+        if (result.toString().contains("turn on lamp")) {
+            System.out.println("Turn on lamp!");
+        } else if (result.toString().contains(("turn off lamp"))) {
+            System.out.println("Turn off lamp!");
+        } else {
+            System.out.println("No valid input, try again!");
+            //Lägg till en text-to-speech eller en ljudfil här
+        }
+    }
+
 
     //SSH-Kopplingen
     public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
