@@ -21,7 +21,7 @@
         app:layout_constraintVertical_bias="0.275" />
 
     <ImageButton
-        android:id="@+id/imageButton"
+        android:id="@+id/voiceBtn"
         android:layout_width="269dp"
         android:layout_height="258dp"
         android:layout_marginStart="16dp"
@@ -36,16 +36,38 @@
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.623"
+        app:layout_constraintVertical_bias="0.55"
         app:srcCompat="@drawable/microphone" />
 
     <TextView
-        android:id="@+id/txvResult"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="176dp"
-        tools:layout_editor_absoluteY="591dp" />
+        android:id="@+id/voiceInput"
+        android:background="@drawable/background_textview"
+        android:layout_width="263dp"
+        android:layout_height="123dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="66dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/voiceBtn" />
+
+    <ImageButton
+        android:id="@+id/devicesBtn"
+        android:layout_width="61dp"
+        android:layout_height="57dp"
+        android:layout_marginStart="312dp"
+        android:layout_marginTop="74dp"
+        android:layout_marginEnd="38dp"
+        android:layout_marginBottom="64dp"
+        android:background="#00232323"
+        android:scaleType="centerCrop"
+        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_devices" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
