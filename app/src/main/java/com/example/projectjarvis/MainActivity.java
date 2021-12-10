@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.speech.RecognizerIntent;
@@ -30,14 +29,13 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences prefs;
     private TextView voiceInput;
-    private ImageButton micBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        micBtn = findViewById(R.id.voiceBtn);       //button for activating voice recog
+        ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recog
         voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
