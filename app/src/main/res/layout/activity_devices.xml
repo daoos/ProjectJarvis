@@ -8,15 +8,16 @@
 
     <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/lampSwitch"
-        android:theme="@style/Theme.AppCompat.Light"
         android:layout_width="195dp"
         android:layout_height="77dp"
         android:layout_marginTop="202dp"
         android:layout_marginBottom="452dp"
         android:text="Lamp 1"
         android:textSize="20sp"
+        android:theme="@style/Theme.AppCompat.Light"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,5 +40,17 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         tools:layout_editor_absoluteY="314dp" />
+
+    <TextView
+        android:id="@+id/textViewTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="133dp"
+        android:layout_marginBottom="50dp"
+        android:text="TextView"
+        app:layout_constraintBottom_toTopOf="@+id/lampSwitch"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

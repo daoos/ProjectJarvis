@@ -15,7 +15,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
@@ -24,11 +23,7 @@ import ch.ethz.ssh2.StreamGobbler;
 
 public class MainActivity extends AppCompatActivity {
 
-    //TODO: Seems like the design pattern to use a "sharedPreferences" instead, same usage?
-    //Collection for keeping track of the state of our actuators
-    public HashMap<String, Boolean> toggles = new HashMap<>();
-
-    SharedPreferences prefs = getSharedPreferences("Share", Context.MODE_PRIVATE);
+    private SharedPreferences prefs;
 
     //Layout setup
     @Override
@@ -40,11 +35,7 @@ public class MainActivity extends AppCompatActivity {
         TextView voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
-        //all the actuator buttons, turned off if null
-        //TODO: Check how to control their state through Telldus or Raspberry?
-        //if (prefs.get("lampSwitch") == null) {
-        //    toggles.put("lampSwitch", false);
-        //}
+        prefs = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
 
         micBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,13 +100,5 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace(System.err);
             System.exit(2);
         }
-    }
-
-    public HashMap<String, Boolean> getToggles() {
-        return toggles;
-    }
-
-    public void setToggles(HashMap<String, Boolean> toggles) {
-        this.toggles = toggles;
     }
 }
