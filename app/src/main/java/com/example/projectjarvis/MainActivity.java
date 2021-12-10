@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //EMPTY COMMENT
+
         ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recog
         voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
