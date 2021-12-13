@@ -40,8 +40,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recognition
-        voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
+        ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
+        voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> textToSpeech.setLanguage(Locale.US));
