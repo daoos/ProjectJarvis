@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 public class Devices extends AppCompatActivity {
 
-    Switch lightToggle = null;
+    private Switch lightToggle;
     public MainActivity mainObject = new MainActivity();
 
     @Override
@@ -31,6 +31,7 @@ public class Devices extends AppCompatActivity {
                         @Override
                         protected Void doInBackground(Integer... params) {
                             mainObject.run("python turnondevice.py");
+                            System.out.println("Turning on device");
                             return null;
                         }
                     }.execute(1);
@@ -41,6 +42,7 @@ public class Devices extends AppCompatActivity {
                         @Override
                         protected Void doInBackground(Integer... params) {
                             mainObject.run("python turnoffdevice.py");
+                            System.out.println("Turning off device");
                             return null;
                         }
                     }.execute(1);
