@@ -14,23 +14,19 @@ import ch.ethz.ssh2.StreamGobbler;
 
 public class Link {
 
-    public void turnOnActuator() {
+    public void actuatorControl(String str) {
         new AsyncTask<Integer, Void, Void>(){
             @Override
             protected Void doInBackground(Integer... params) {
-                run("python turnondevice.py");
-                System.out.println("Turning on device");
-                return null;
-            }
-        }.execute(1);
-    }
-
-    public void turnOffActuator() {
-        new AsyncTask<Integer, Void, Void>(){
-            @Override
-            protected Void doInBackground(Integer... params) {
-                run("python turnoffdevice.py");
-                System.out.println("Turning on device");
+                switch (str){
+                    case "off":
+                        run("python turnoffdevice.py");
+                        break;
+                    case "on":
+                        run("python turnondevice.py");
+                        break;
+                    default:
+                }
                 return null;
             }
         }.execute(1);
@@ -38,7 +34,7 @@ public class Link {
 
     //SSH-Kopplingen
     public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
-        String hostname = "192.168.1.32"; //Raspberry IP
+        String hostname = "192.168.1.32"; //Raspberry IP 192.168.1.32
         String username = "pi"; //see lab
         String password = "IoT@2021"; //see lab
 

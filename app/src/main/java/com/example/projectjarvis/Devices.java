@@ -1,13 +1,10 @@
 package com.example.projectjarvis;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SwitchCompat;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-import android.widget.TextView;
 
 public class Devices extends AppCompatActivity {
 
@@ -28,10 +25,10 @@ public class Devices extends AppCompatActivity {
 
                 if (isChecked) {
                     //Async for values
-                    linkObject.turnOnActuator();
+                    linkObject.actuatorControl("on");
                 } else {
                     //turn off lamp
-                    linkObject.turnOffActuator();
+                    linkObject.actuatorControl("off");
                 }
             }
         });
