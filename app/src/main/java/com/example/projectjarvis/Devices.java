@@ -9,15 +9,14 @@ import android.widget.Switch;
 public class Devices extends AppCompatActivity {
 
     private Switch lightToggle;
-    public MainActivity mainObject = new MainActivity();
-    Link linkObject = new Link();
+    private Link linkObject = new Link();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_devices);
 
-        lightToggle = (Switch) findViewById(R.id.switch1);
+        lightToggle = findViewById(R.id.switch1);
 
         lightToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

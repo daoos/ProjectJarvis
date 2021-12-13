@@ -34,7 +34,7 @@ public class Link {
 
     //SSH-Kopplingen
     public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
-        String hostname = "192.168.1.32"; //Raspberry IP 192.168.1.32
+        String hostname = "81.229.156.152"; //Raspberry IP 192.168.1.32
         String username = "pi"; //see lab
         String password = "IoT@2021"; //see lab
 

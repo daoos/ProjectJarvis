@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private static SharedPreferences prefs;
     private TextView voiceInput;
     private TextToSpeech textToSpeech;
+    private Controller controller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,8 @@ public class MainActivity extends AppCompatActivity {
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
-        //textToSpeech = new TextToSpeech(getApplicationContext(), status -> textToSpeech.setLanguage(Locale.US));
+        textToSpeech = new TextToSpeech(getApplicationContext(), status -> textToSpeech.setLanguage(Locale.US));
+        controller = new Controller(textToSpeech, getApplicationContext());
 
         prefs = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
 
@@ -71,31 +73,9 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK && data != null) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput.setText(result.get(0));
-                    decodeInput(result);
+                    controller.decodeInput(result);
                 }
                 break;
         }
-    }
-
-    private void decodeInput(ArrayList<String> result) {
-        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
-        if (resultString.contains("turn on the lamp")) {
-            linkObject.actuatorControl("on");
-        } else if (resultString.contains(("turn off the lamp"))) {
-            linkObject.actuatorControl("off");
-        } else if (resultString.contains(("turn on the christmas tree"))) {
-            linkObject.actuatorControl("on");
-        } else if (resultString.contains(("turn off the christmas tree"))) {
-            linkObject.actuatorControl("off");
-        } else {
-            String nonValid = "No valid input, please try again!"; //todo: move this out
-            feedback(nonValid);
-        }
-    }
-
-    private void feedback(String string) {
-        textToSpeech.speak(string, TextToSpeech.QUEUE_FLUSH, null);
-        System.out.println(string);
     }
 }

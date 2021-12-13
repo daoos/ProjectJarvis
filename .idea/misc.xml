@@ -3,8 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/johan/AndroidStudioProjects/ProjectJarvis/app/src/main/res/drawable-anydpi/ic_devices.xml" value="1.1479166666666667" />
         <entry key="..\:/Users/johan/AndroidStudioProjects/ProjectJarvis/app/src/main/res/layout/activity_devices.xml" value="0.8055555555555556" />
-        <entry key="..\:/Users/johan/AndroidStudioProjects/ProjectJarvis/app/src/main/res/layout/activity_main.xml" value="0.328125" />
+        <entry key="..\:/Users/johan/AndroidStudioProjects/ProjectJarvis/app/src/main/res/layout/activity_main.xml" value="1.1" />
         <entry key="app/src/main/res/layout/activity_devices.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
       </map>
