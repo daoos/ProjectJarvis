@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.speech.RecognizerIntent;
@@ -84,51 +85,52 @@ public class MainActivity extends AppCompatActivity {
     private void decodeInput(ArrayList<String> result) {
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
         String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
+
         if (resultString.contains("turn on the lamp")) {
-            System.out.println("Turn on the lamp!");
+            new AsyncTask<Integer, Void, Void>(){
+                @Override
+                protected Void doInBackground(Integer... params) {
+                    run("python turnondevice.py");
+                    System.out.println("Turning on the lamp!");
+                    return null;
+                }
+            }.execute(1);
         } else if (resultString.contains(("turn off the lamp"))) {
-            System.out.println("Turn off the lamp!");
+            new AsyncTask<Integer, Void, Void>(){
+                @Override
+                protected Void doInBackground(Integer... params) {
+                    run("python turnoffdevice.py");
+                    System.out.println("Turning off the lamp!");
+                    return null;
+                }
+            }.execute(1);
+        } else if (resultString.contains(("turn on the christmas tree"))) {
+            new AsyncTask<Integer, Void, Void>(){
+                @Override
+                protected Void doInBackground(Integer... params) {
+                    run("python turnondevice.py");
+                    System.out.println("Turning on the christmas tree!");
+                    return null;
+                }
+            }.execute(1);
+        } else if (resultString.contains(("turn off the christmas tree"))) {
+            new AsyncTask<Integer, Void, Void>(){
+                @Override
+                protected Void doInBackground(Integer... params) {
+                    run("python turnoffdevice.py");
+                    System.out.println("Turning off the christmas tree!");
+                    return null;
+                }
+            }.execute(1);
         } else {
             System.out.println("No valid input, try again!");
             //Lägg till en text-to-speech eller en ljudfil här
         }
     }
 
-//    private void altDecode(ArrayList<String> result) {
-//        String resultString = result.toString().toLowerCase();
-//        ArrayList<String> commands = new ArrayList<>();
-//        String turnOn = "turn on the lamp", turnOff = "turn off the lamp";
-//        commands.add(turnOn);
-//        commands.add(turnOff);
-//
-//        for (String command : commands) {
-//            if (resultString.contains(command)) {
-//                System.out.println(command);
-//            }
-//        }
-//    }
-
-//    private void activation(ArrayList<String> result) {
-//        String resultString = result.toString().toLowerCase();
-//        //TODO: detta är det mest resurseffektiva men funkar nog inte nu
-//        switch (resultString) {
-//            case "turn the lamp on":
-//            case "turn on the lamp":
-//            case "turn on lamp":
-//                System.out.println("Turning on the lamp");
-//            case "turn the lamp off":
-//            case "turn off the lamp":
-//            case "turn off lamp":
-//                System.out.println("Turning off the lamp");
-//            default:
-//                System.out.println("No valid input, please try again");
-//        }
-//    }
-
-
     //SSH-Kopplingen
     public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
-        String hostname = "192.168.1.32"; //Raspberry IP
+        String hostname = "81.229.156.152"; //Raspberry IP
         String username = "pi"; //see lab
         String password = "IoT@2021"; //see lab
 
