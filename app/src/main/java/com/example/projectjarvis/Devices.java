@@ -1,6 +1,7 @@
 package com.example.projectjarvis;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,6 +18,8 @@ public class Devices extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_devices);
+
+        SwitchCompat test;
 
         SharedPreferences prefs = getApplicationContext().getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
         Button lampBtn = findViewById(R.id.lampBtn);

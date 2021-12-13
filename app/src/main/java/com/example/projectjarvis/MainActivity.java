@@ -27,7 +27,7 @@ import ch.ethz.ssh2.StreamGobbler;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SharedPreferences prefs;
+    private static SharedPreferences prefs;
     private TextView voiceInput;
 
     @Override
@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
         voiceBtn.setOnClickListener(v -> {
             getSpeechInput(v.getRootView()); //activates voice recog when clicking
         });
-
     }
 
     public void getSpeechInput(View view) {
@@ -84,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void decodeInput(ArrayList<String> result) {
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-        String resultString = result.toString().toLowerCase();
+        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
         if (resultString.contains("turn on the lamp")) {
             System.out.println("Turn on the lamp!");
         } else if (resultString.contains(("turn off the lamp"))) {
@@ -94,6 +93,37 @@ public class MainActivity extends AppCompatActivity {
             //Lägg till en text-to-speech eller en ljudfil här
         }
     }
+
+//    private void altDecode(ArrayList<String> result) {
+//        String resultString = result.toString().toLowerCase();
+//        ArrayList<String> commands = new ArrayList<>();
+//        String turnOn = "turn on the lamp", turnOff = "turn off the lamp";
+//        commands.add(turnOn);
+//        commands.add(turnOff);
+//
+//        for (String command : commands) {
+//            if (resultString.contains(command)) {
+//                System.out.println(command);
+//            }
+//        }
+//    }
+
+//    private void activation(ArrayList<String> result) {
+//        String resultString = result.toString().toLowerCase();
+//        //TODO: detta är det mest resurseffektiva men funkar nog inte nu
+//        switch (resultString) {
+//            case "turn the lamp on":
+//            case "turn on the lamp":
+//            case "turn on lamp":
+//                System.out.println("Turning on the lamp");
+//            case "turn the lamp off":
+//            case "turn off the lamp":
+//            case "turn off lamp":
+//                System.out.println("Turning off the lamp");
+//            default:
+//                System.out.println("No valid input, please try again");
+//        }
+//    }
 
 
     //SSH-Kopplingen
