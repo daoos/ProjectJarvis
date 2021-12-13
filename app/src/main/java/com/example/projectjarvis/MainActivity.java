@@ -27,6 +27,7 @@ import ch.ethz.ssh2.StreamGobbler;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Link linkObject = new Link();
     private static SharedPreferences prefs;
     private TextView voiceInput;
 
@@ -94,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
 //    private void altDecode(ArrayList<String> result) {
 //        String resultString = result.toString().toLowerCase();
 //        ArrayList<String> commands = new ArrayList<>();
@@ -112,7 +115,8 @@ public class MainActivity extends AppCompatActivity {
 //        String resultString = result.toString().toLowerCase();
 //        //TODO: detta är det mest resurseffektiva men funkar nog inte nu
 //        switch (resultString) {
-//            case "turn the lamp on":
+//            case 1:
+//               "turn the lamp on"
 //            case "turn on the lamp":
 //            case "turn on lamp":
 //                System.out.println("Turning on the lamp");
@@ -126,44 +130,5 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
 
-    //SSH-Kopplingen
-    public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
-        String hostname = "192.168.1.32"; //Raspberry IP
-        String username = "pi"; //see lab
-        String password = "IoT@2021"; //see lab
 
-        try {
-            StrictMode.ThreadPolicy policy = new
-                    StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-
-            Connection conn = new Connection(hostname); //init connection
-            conn.connect(); //start connection to the hostname
-            boolean isAuthenticated = conn.authenticateWithPassword(username,
-                    password);
-            if (!isAuthenticated)
-                throw new IOException("Authentication failed.");
-            Session session = conn.openSession();
-            session.execCommand(command);
-            InputStream stdout = new StreamGobbler(session.getStdout());
-            BufferedReader br = new BufferedReader(new InputStreamReader(stdout)); //reads text
-
-            while (true) {
-                String line = br.readLine(); // read line
-                if (line == null)
-                    break;
-                System.out.println(line);
-            }
-
-            /* Show exit status, if available (otherwise "null") */
-            System.out.println("ExitCode: " + session.getExitStatus());
-            session.close(); // Close this session
-            conn.close();
-
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-            System.exit(2);
-        }
-    }
 }

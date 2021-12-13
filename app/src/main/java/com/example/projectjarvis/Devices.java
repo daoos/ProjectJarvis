@@ -13,6 +13,7 @@ public class Devices extends AppCompatActivity {
 
     private Switch lightToggle;
     public MainActivity mainObject = new MainActivity();
+    Link linkObject = new Link();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,25 +28,10 @@ public class Devices extends AppCompatActivity {
 
                 if (isChecked) {
                     //Async for values
-                    new AsyncTask<Integer, Void, Void>(){
-                        @Override
-                        protected Void doInBackground(Integer... params) {
-                            mainObject.run("python turnondevice.py");
-                            System.out.println("Turning on device");
-                            return null;
-                        }
-                    }.execute(1);
+                    linkObject.turnOnActuator();
                 } else {
                     //turn off lamp
-                    //Async for values
-                    new AsyncTask<Integer, Void, Void>(){
-                        @Override
-                        protected Void doInBackground(Integer... params) {
-                            mainObject.run("python turnoffdevice.py");
-                            System.out.println("Turning off device");
-                            return null;
-                        }
-                    }.execute(1);
+                    linkObject.turnOffActuator();
                 }
             }
         });
