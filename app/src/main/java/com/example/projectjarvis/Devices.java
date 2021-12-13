@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 public class Devices extends AppCompatActivity {
 
-    //TextView lampStatusss = findViewById(R.id.lampStatus);
     Switch lightToggle = null;
     public MainActivity mainObject = new MainActivity();
 
@@ -48,32 +47,5 @@ public class Devices extends AppCompatActivity {
                 }
             }
         });
-
-        /**
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
-        Button lampBtn = findViewById(R.id.lampBtn);
-
-        //Updates the text field to show the current status
-        TextView lampStatus = findViewById(R.id.lampStatus);
-        lampStatus.setText(Boolean.valueOf(lampBoolean).toString());
-        System.out.println(lampBoolean);
-
-        lampBtn.setOnClickListener(v -> {
-            System.out.println("Lamp click!");
-            lampBoolean = !lampBoolean;
-            System.out.println(lampBoolean);
-            lampStatus.setText(Boolean.valueOf(lampBoolean).toString());
-
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean("lampBoolean", lampBoolean);
-            editor.apply();
-
-            if (lampBoolean = true) {
-                Toast.makeText(Devices.this, "Lamp turned on", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(Devices.this, "Lamp turned off", Toast.LENGTH_LONG).show();
-            }
-        });
-        */
     }
 }
