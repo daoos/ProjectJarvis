@@ -10,10 +10,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static SharedPreferences prefs;
     private TextView voiceInput;
+    private TextToSpeech textToSpeech;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recognition
         voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
+
+        textToSpeech = new TextToSpeech(getApplicationContext(), status -> textToSpeech.setLanguage(Locale.US));
 
         prefs = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
 
@@ -123,9 +129,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }.execute(1);
         } else {
-            System.out.println("No valid input, try again!");
-            //Lägg till en text-to-speech eller en ljudfil här
+            String nonValid = "No valid input, please try again!"; //todo: move this out
+            feedback(nonValid);
         }
+    }
+
+    private void feedback(String string) {
+        textToSpeech.speak(string, TextToSpeech.QUEUE_FLUSH, null);
+        System.out.println(string);
     }
 
     //SSH-Kopplingen
