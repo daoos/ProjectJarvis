@@ -29,13 +29,14 @@ public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences prefs;
     private TextView voiceInput;
+    private ImageButton voiceBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recog
+        voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recog
         voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
@@ -81,11 +82,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     //SSH-Kopplingen
     public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
-        String hostname = "hostname"; //Raspberry IP
-        String username = "username"; //see lab
-        String password = "password"; //see lab
+        String hostname = "192.168.1.32"; //Raspberry IP
+        String username = "pi"; //see lab
+        String password = "IoT@2021"; //see lab
+
         try {
             StrictMode.ThreadPolicy policy = new
                     StrictMode.ThreadPolicy.Builder()

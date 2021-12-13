@@ -25,21 +25,28 @@
         android:id="@+id/lampStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="TextView"
+        android:layout_marginTop="110dp"
+        android:layout_marginBottom="261dp"
+        android:text="lampStatus"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lampSwitch" />
+        app:layout_constraintTop_toBottomOf="@+id/lampBtn" />
 
     <Button
         android:id="@+id/lampBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="23dp"
+        android:layout_marginBottom="390dp"
         android:text="Button"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="314dp" />
+        app:layout_constraintTop_toBottomOf="@+id/lampStatus"
+        app:layout_constraintVertical_bias="0.75" />
 
     <TextView
         android:id="@+id/textViewTest"
@@ -47,10 +54,29 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="133dp"
         android:layout_marginBottom="50dp"
-        android:text="TextView"
+        android:text="testView"
         app:layout_constraintBottom_toTopOf="@+id/lampSwitch"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="159dp"
+        android:layout_marginTop="23dp"
+        android:layout_marginEnd="164dp"
+        android:layout_marginBottom="91dp"
+        android:checked="false"
+        android:showText="false"
+        android:text="Switch"
+        app:layout_constraintBottom_toTopOf="@+id/lampBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewTest"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
