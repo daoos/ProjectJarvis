@@ -27,7 +27,7 @@ import ch.ethz.ssh2.StreamGobbler;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SharedPreferences prefs;
+    private static SharedPreferences prefs;
     private TextView voiceInput;
 
     @Override
@@ -35,22 +35,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recog
+        ImageButton voiceBtn = findViewById(R.id.voiceBtn);       //button for activating voice recognition
         voiceInput = findViewById(R.id.voiceInput);    //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         prefs = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
 
-        System.out.println("TEST");
+        devicesBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), Devices.class);
+            startActivity(intent);
 
-        devicesBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), Devices.class);
-                startActivity(intent);
+            System.out.println("Opening devices!");
+        });
 
-                System.out.println("Opening devices!");
-            }
+        voiceBtn.setOnClickListener(v -> {
+            getSpeechInput(v.getRootView()); //activates voice recog when clicking
         });
     }
 
@@ -76,10 +75,56 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK && data != null) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput.setText(result.get(0));
+                    decodeInput(result);
                 }
                 break;
         }
     }
+
+    private void decodeInput(ArrayList<String> result) {
+        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
+        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
+        if (resultString.contains("turn on the lamp")) {
+            System.out.println("Turn on the lamp!");
+        } else if (resultString.contains(("turn off the lamp"))) {
+            System.out.println("Turn off the lamp!");
+        } else {
+            System.out.println("No valid input, try again!");
+            //Lägg till en text-to-speech eller en ljudfil här
+        }
+    }
+
+//    private void altDecode(ArrayList<String> result) {
+//        String resultString = result.toString().toLowerCase();
+//        ArrayList<String> commands = new ArrayList<>();
+//        String turnOn = "turn on the lamp", turnOff = "turn off the lamp";
+//        commands.add(turnOn);
+//        commands.add(turnOff);
+//
+//        for (String command : commands) {
+//            if (resultString.contains(command)) {
+//                System.out.println(command);
+//            }
+//        }
+//    }
+
+//    private void activation(ArrayList<String> result) {
+//        String resultString = result.toString().toLowerCase();
+//        //TODO: detta är det mest resurseffektiva men funkar nog inte nu
+//        switch (resultString) {
+//            case "turn the lamp on":
+//            case "turn on the lamp":
+//            case "turn on lamp":
+//                System.out.println("Turning on the lamp");
+//            case "turn the lamp off":
+//            case "turn off the lamp":
+//            case "turn off lamp":
+//                System.out.println("Turning off the lamp");
+//            default:
+//                System.out.println("No valid input, please try again");
+//        }
+//    }
+
 
     //SSH-Kopplingen
     public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
