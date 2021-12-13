@@ -41,16 +41,15 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
 
-        System.out.println("TEST");
+        devicesBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), Devices.class);
+            startActivity(intent);
 
-        devicesBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), Devices.class);
-                startActivity(intent);
+            System.out.println("Opening devices!");
+        });
 
-                System.out.println("Opening devices!");
-            }
+        voiceBtn.setOnClickListener(v -> {
+            getSpeechInput(v.getRootView()); //activates voice recog when clicking
         });
 
     }
@@ -85,11 +84,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void decodeInput(ArrayList<String> result) {
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-
-        if (result.toString().contains("turn on lamp")) {
-            System.out.println("Turn on lamp!");
-        } else if (result.toString().contains(("turn off lamp"))) {
-            System.out.println("Turn off lamp!");
+        String resultString = result.toString().toLowerCase();
+        if (resultString.contains("turn on the lamp")) {
+            System.out.println("Turn on the lamp!");
+        } else if (resultString.contains(("turn off the lamp"))) {
+            System.out.println("Turn off the lamp!");
         } else {
             System.out.println("No valid input, try again!");
             //Lägg till en text-to-speech eller en ljudfil här
