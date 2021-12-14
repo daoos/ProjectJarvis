@@ -1,5 +1,6 @@
 package com.example.projectjarvis;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,47 +19,49 @@ public class Link extends AppCompatActivity {
     private MqttAndroidClient client;
     private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
     private static final String TAG = "MainActivity";
+    private static Context context;
 
-    public void mqttConnect() {
-
-    client.setCallback(new MqttCallbackExtended() {
-        @Override
-        public void connectComplete(boolean reconnect, String serverURI) {
-            if (reconnect) {
-                System.out.println("Reconnected to : " + serverURI); // Re-subscribe as we lost it due to new session
-                subscribe("iotlab/hj/lux"); //TODO - Byt ut
-            } else {
-                System.out.println("Connected to: " + serverURI);
-                subscribe("iotlab/hj/lux");
+    public void mqttConnect(String topic, Context context) {
+        Link.context = context;
+        connect();
+        client.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                if (reconnect) {
+                    System.out.println("Reconnected to : " + serverURI); // Re-subscribe as we lost it due to new session
+                    subscribe(topic); //TODO - Byt ut
+                } else {
+                    System.out.println("Connected to: " + serverURI);
+                    subscribe(topic);
+                }
             }
-        }
 
-        @Override
-        public void connectionLost(Throwable cause) {
-            System.out.println("The Connection was lost.");
-        }
+            @Override
+            public void connectionLost(Throwable cause) {
+                System.out.println("The Connection was lost.");
+            }
 
-        @Override
-        public void messageArrived(String topic, MqttMessage message) throws Exception {
-            String newMessage = new String(message.getPayload());
-            System.out.println("Incoming message: " + newMessage);
-            //txv_light.setText("HEJ");
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                String newMessage = new String(message.getPayload());
+                System.out.println("Incoming message: " + newMessage);
+                //txv_light.setText("HEJ");
             /* add code here to interact with elements (text views, buttons)
             using data from newMessage */
-            //TODO Add code
-        }
+                //TODO Add code
+            }
 
-        @Override
-        public void deliveryComplete(IMqttDeliveryToken token) {
-        }
-    });
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+            }
+        });
     }
 
     // ** MQTT Connection **
     // Initialize a client and create a connection to the set broker declared in SERVER_URI.
     private void connect() {
         String clientId = MqttClient.generateClientId();
-        client = new MqttAndroidClient(this.getApplicationContext(), SERVER_URI, clientId);
+        client = new MqttAndroidClient(context, SERVER_URI, clientId);
         try {
             IMqttToken token = client.connect();
             token.setActionCallback(new IMqttActionListener() {
@@ -75,14 +78,18 @@ public class Link extends AppCompatActivity {
                     System.out.println(TAG + "Oh no! Failed to connect to " + SERVER_URI);
                 }
             });
-        }
-        catch (MqttException e) {
+        } catch (MqttException e) {
             e.printStackTrace();
         }
     }
 
+    private void publish(String topic) {
+
+    }
+
     //Sets a subscription to the set topic, using the client from connect().
-    private void subscribe(String topicToSubscribe) { final String topic = topicToSubscribe;
+    private void subscribe(String topicToSubscribe) {
+        final String topic = topicToSubscribe;
         int qos = 1;
         try {
             IMqttToken subToken = client.subscribe(topic, qos);

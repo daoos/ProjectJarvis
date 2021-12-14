@@ -19,7 +19,6 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static SharedPreferences prefs;
     private TextView voiceInput;
     private TextToSpeech textToSpeech;
     private Controller controller;
@@ -34,13 +33,14 @@ public class MainActivity extends AppCompatActivity {
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
-        textToSpeech = new TextToSpeech(getApplicationContext(), status -> textToSpeech.setLanguage(Locale.US));
+        textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
+            //textToSpeech.setLanguage(Locale.US) TODO: Can't set locale on virtual machine
+        }
+        );
         controller = new Controller(textToSpeech, getApplicationContext());
 
-        prefs = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
-
         //MQTT Connect
-        linkClass.mqttConnect();
+        linkClass.mqttConnect("project-jarvis/lamp", getApplicationContext());
 
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getSpeechInput(View view) {
-
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());

@@ -22,16 +22,16 @@ public class Controller {
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
         String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
         if (resultString.contains("turn on the lamp")) {
-            linkObject.actuatorControl("on");
+
             feedback("Turning on the lamp");
         } else if (resultString.contains(("turn off the lamp"))) {
-            linkObject.actuatorControl("off");
+
             feedback("Turning off the lamp");
         } else if (resultString.contains(("turn on the christmas tree"))) {
-            linkObject.actuatorControl("on");
+
             feedback("Turning on the christmas tree");
         } else if (resultString.contains(("turn off the christmas tree"))) {
-            linkObject.actuatorControl("off");
+
             feedback("Turning off the christmas tree");
         } else {
             feedback("No valid input, please try again!");
