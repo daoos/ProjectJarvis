@@ -2,6 +2,7 @@
     <string name="app_name">ProjectJarvis</string>
     <string name="info_text">Click the button to activate voice command.</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="devices_info_text">Settings</string>
 
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>

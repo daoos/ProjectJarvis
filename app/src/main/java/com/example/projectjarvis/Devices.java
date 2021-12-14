@@ -9,7 +9,7 @@ import android.widget.Switch;
 public class Devices extends AppCompatActivity {
 
     private Switch lightToggle;
-    private Link linkObject = new Link();
+    private final Link linkObject = new Link();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,11 +23,9 @@ public class Devices extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
                 if (isChecked) {
-                    //Async for values
-                    linkObject.actuatorControl("on");
+                    //linkObject.actuatorControl("on");
                 } else {
-                    //turn off lamp
-                    linkObject.actuatorControl("off");
+                    //linkObject.actuatorControl("off");
                 }
             }
         });

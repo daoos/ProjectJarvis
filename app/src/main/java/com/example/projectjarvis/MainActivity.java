@@ -19,11 +19,11 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Link linkObject = new Link();
     private static SharedPreferences prefs;
     private TextView voiceInput;
     private TextToSpeech textToSpeech;
     private Controller controller;
+    private final Link linkClass = new Link();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
         controller = new Controller(textToSpeech, getApplicationContext());
 
         prefs = getSharedPreferences("MyUserPrefs", Context.MODE_PRIVATE);
+
+        //MQTT Connect
+        linkClass.mqttConnect();
 
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
@@ -78,4 +81,5 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
+
 }

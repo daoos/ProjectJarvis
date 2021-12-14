@@ -2,6 +2,18 @@ package com.example.projectjarvis;
 
 import android.os.AsyncTask;
 import android.os.StrictMode;
+import android.util.Log;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,64 +24,96 @@ import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
 
-public class Link {
+public class Link extends AppCompatActivity {
 
-    public void actuatorControl(String str) {
-        new AsyncTask<Integer, Void, Void>(){
-            @Override
-            protected Void doInBackground(Integer... params) {
-                switch (str){
-                    case "off":
-                        run("python turnoffdevice.py");
-                        break;
-                    case "on":
-                        run("python turnondevice.py");
-                        break;
-                    default:
-                }
-                return null;
+    private MqttAndroidClient client;
+    private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
+    private static final String TAG = "MainActivity";
+
+    public void mqttConnect() {
+
+    client.setCallback(new MqttCallbackExtended() {
+        @Override
+        public void connectComplete(boolean reconnect, String serverURI) {
+            if (reconnect) {
+                System.out.println("Reconnected to : " + serverURI); // Re-subscribe as we lost it due to new session
+                subscribe("iotlab/hj/lux"); //TODO - Byt ut
+            } else {
+                System.out.println("Connected to: " + serverURI);
+                subscribe("iotlab/hj/lux");
             }
-        }.execute(1);
+        }
+
+        @Override
+        public void connectionLost(Throwable cause) {
+            System.out.println("The Connection was lost.");
+        }
+
+        @Override
+        public void messageArrived(String topic, MqttMessage message) throws Exception {
+            String newMessage = new String(message.getPayload());
+            System.out.println("Incoming message: " + newMessage);
+            //txv_light.setText("HEJ");
+            /* add code here to interact with elements (text views, buttons)
+            using data from newMessage */
+            //TODO Add code
+        }
+
+        @Override
+        public void deliveryComplete(IMqttDeliveryToken token) {
+        }
+    });
     }
 
-    //SSH-Kopplingen
-    public void run(String command) { //TODO: Fixa till denna så den är mer "våran"?
-        String hostname = "81.229.156.152"; //Raspberry IP 192.168.1.32
-        String username = "pi"; //see lab
-        String password = "IoT@2021"; //see lab
-
+    // ** MQTT Connection **
+    // Initialize a client and create a connection to the set broker declared in SERVER_URI.
+    private void connect() {
+        String clientId = MqttClient.generateClientId();
+        client = new MqttAndroidClient(this.getApplicationContext(), SERVER_URI, clientId);
         try {
-            StrictMode.ThreadPolicy policy = new
-                    StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
+            IMqttToken token = client.connect();
+            token.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // We are connected Log.d(TAG, “onSuccess”);
+                    System.out.println(TAG + "Success. Connected to " + SERVER_URI);
+                }
 
-            Connection conn = new Connection(hostname); //init connection
-            conn.connect(); //start connection to the hostname
-            boolean isAuthenticated = conn.authenticateWithPassword(username,
-                    password);
-            if (!isAuthenticated)
-                throw new IOException("Authentication failed.");
-            Session session = conn.openSession();
-            session.execCommand(command);
-            InputStream stdout = new StreamGobbler(session.getStdout());
-            BufferedReader br = new BufferedReader(new InputStreamReader(stdout)); //reads text
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // Something went wrong e.g. connection timeout or firewall problems
+                    Log.d(TAG, "onFailure");
+                    System.out.println(TAG + "Oh no! Failed to connect to " + SERVER_URI);
+                }
+            });
+        }
+        catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
 
-            while (true) {
-                String line = br.readLine(); // read line
-                if (line == null)
-                    break;
-                System.out.println(line);
-            }
+    //Sets a subscription to the set topic, using the client from connect().
+    private void subscribe(String topicToSubscribe) { final String topic = topicToSubscribe;
+        int qos = 1;
+        try {
+            IMqttToken subToken = client.subscribe(topic, qos);
+            subToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    System.out.println("Subscription successful to topic: " + topic);
 
-            /* Show exit status, if available (otherwise "null") */
-            System.out.println("ExitCode: " + session.getExitStatus());
-            session.close(); // Close this session
-            conn.close();
+                }
 
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-            System.exit(2);
+                @Override
+                public void onFailure(IMqttToken asyncActionToken,
+                                      Throwable exception) {
+                    System.out.println("Failed to subscribe to topic: " + topic);
+                    // The subscription could not be performed, maybe the user was not
+                    // authorized to subscribe on the specified topic e.g. using wildcards
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
         }
     }
 }
