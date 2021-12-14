@@ -1,7 +1,5 @@
 package com.example.projectjarvis;
 
-import android.os.AsyncTask;
-import android.os.StrictMode;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,15 +12,6 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import ch.ethz.ssh2.Connection;
-import ch.ethz.ssh2.Session;
-import ch.ethz.ssh2.StreamGobbler;
 
 public class Link extends AppCompatActivity {
 
