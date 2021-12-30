@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,7 +28,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Button turnOnBtn = findViewById(R.id.turnOnBtn);
+        turnOnBtn.setOnClickListener(v -> {
+            link.publish("project-jarvis/floor-lamp", "device/turnOn");
+        });
 
+        Button turnOffBtn = findViewById(R.id.turnOffBtn);
+        turnOffBtn.setOnClickListener(v -> {
+            link.publish("project-jarvis/floor-lamp", "device/turnOff");
+        });
 
         ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input

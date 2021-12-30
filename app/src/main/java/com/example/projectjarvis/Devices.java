@@ -15,15 +15,5 @@ public class Devices extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_devices);
-
-        Button turnOnBtn2 = findViewById(R.id.turnOnBtn2);
-        turnOnBtn2.setOnClickListener(v -> {
-            link.publish("project-jarvis/floor-lamp", "device/turnOn");
-        });
-
-        Button turnOffBtn = findViewById(R.id.turnOffBtn2);
-        turnOffBtn.setOnClickListener(v -> {
-            link.publish("project-jarvis/floor-lamp", "device/turnOff");
-        });
     }
 }
