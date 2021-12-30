@@ -92,4 +92,16 @@
         app:layout_constraintEnd_toStartOf="@+id/devicesBtn"
         app:layout_constraintTop_toBottomOf="@+id/turnOnBtn" />
 
+    <Button
+        android:id="@+id/alarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="112dp"
+        android:layout_marginBottom="31dp"
+        android:text="ALARM"
+        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

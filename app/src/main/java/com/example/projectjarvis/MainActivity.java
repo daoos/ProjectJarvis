@@ -4,6 +4,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
@@ -35,6 +38,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
     private static final String TAG = "MainActivity";
 
+    //creates the ringtone / alarm
+    private boolean ringtoneActive = false;
+    private static final String ALARM_TOPIC = "project-jarvis/alarm";
+    private final Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+    private Ringtone r;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
         ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
+
+        r = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
             //textToSpeech.setLanguage(Locale.US) TODO: Can't set locale on virtual machine
@@ -74,6 +85,17 @@ public class MainActivity extends AppCompatActivity {
         voiceBtn.setOnClickListener(v -> {
             getSpeechInput(v.getRootView()); //activates voice recog when clicking
         });
+
+        //TODO: Remove alarm button
+        Button alarmBtn = findViewById(R.id.alarm);
+        alarmBtn.setOnClickListener(v -> {
+            publish(ALARM_TOPIC, "activate");
+            System.out.println("publishing activate");
+            if (ringtoneActive) {
+                publish(ALARM_TOPIC, "deactivate");
+                System.out.println("publishing deactivate");
+            }
+        });
     }
 
     public void getSpeechInput(View view) {
@@ -97,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK && data != null) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput.setText(result.get(0));
-                    decodeInput(result);
+//                    decodeInput(result); CURRENTLY UNUSED
                 }
                 break;
         }
@@ -112,13 +134,12 @@ public class MainActivity extends AppCompatActivity {
             public void connectComplete(boolean reconnect, String serverURI) {
                 if (reconnect) {
                     System.out.println("Reconnected to : " + serverURI); // Re-subscribe as we lost it due to new session
-                    subscribe(topic); //TODO - Byt ut
-                    subscribe(feedbackTopic);
                 } else {
                     System.out.println("Connected to: " + serverURI);
-                    subscribe(topic);
-                    subscribe(feedbackTopic);
                 }
+                subscribe(topic); //TODO - Byt ut
+                subscribe(feedbackTopic);
+                subscribe(ALARM_TOPIC);
             }
 
             @Override
@@ -129,15 +150,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 String newMessage = new String(message.getPayload());
-                System.out.println("Incoming message: " + newMessage);
-                //txv_light.setText("HEJ");
+                System.out.println("Incoming message: " + topic + " " + newMessage);
 
-                /* add code here to interact with elements (text views, buttons)
-                using data from newMessage */
-                //TODO Add code
+                if (topic.equals(ALARM_TOPIC)) {
+                    System.out.println("alarmtopic!");
+                    try {
+                        if (newMessage.equals("activate")) {
+                            System.out.println("Playing alarm");
+                            r.play();
+                            ringtoneActive = true;
+                            feedback("Alarm!");
+                        } else if (newMessage.equals("deactivate")) {
+                            System.out.println("Turning off alarm");
+                            r.stop();
+                            ringtoneActive = false;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Alarm error");
+                        e.printStackTrace();
+                    }
+                }
                 if (topic.equals(feedbackTopic)) {
-                    //TODO- funkar inte
-                    //feedback((message.getPayload().toString()));
+                    System.out.println("FEEDBACK: " + newMessage);
                 }
             }
 
@@ -224,21 +258,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //OLD Controller
-    public void decodeInput(ArrayList<String> result) {
-
-        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
-        if (resultString.contains("turn on the lamp")) {
-            //publish "turnOn" to jarvis/livingroom/floorlamp
-            feedback("Turning on the lamp");
-        } else if (resultString.contains(("turn off the lamp"))) {
-            //publish "turnOff" to jarvis/livingroom/floorlamp
-            feedback("Turning off the lamp");
-        } else {
-            feedback("No valid input, please try again!");
-        }
-    }
+//    //OLD Controller
+//    public void decodeInput(ArrayList<String> result) {
+//
+//        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
+//        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
+//        if (resultString.contains("turn on the lamp")) {
+//            //publish "turnOn" to jarvis/livingroom/floorlamp
+//            feedback("Turning on the lamp");
+//        } else if (resultString.contains(("turn off the lamp"))) {
+//            //publish "turnOff" to jarvis/livingroom/floorlamp
+//            feedback("Turning off the lamp");
+//        } else {
+//            feedback("No valid input, please try again!");
+//        }
+//    }
 
     public void feedback(String string) {
         System.out.println(string);
