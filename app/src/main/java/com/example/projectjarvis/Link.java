@@ -57,7 +57,7 @@ public class Link extends AppCompatActivity {
             }
         });
 
-        client.subscribe("project-jarvis/feedback", 1);
+//        subscribe("project-jarvis/feedback");
     }
 
     // ** MQTT Connection **

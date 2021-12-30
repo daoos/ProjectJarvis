@@ -51,11 +51,13 @@ public class MainActivity extends AppCompatActivity {
         controller = new Controller(textToSpeech, getApplicationContext());
 
         //MQTT Connect
+
         try {
             link.mqttConnect("project-jarvis/floor-lamp", getApplicationContext()); //TODO variabel
         } catch (MqttException e) {
             e.printStackTrace();
         }
+
 
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
