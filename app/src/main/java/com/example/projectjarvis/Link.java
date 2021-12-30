@@ -21,7 +21,7 @@ public class Link extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static Context context;
 
-    public void mqttConnect(String topic, Context context) {
+    public void mqttConnect(String topic, Context context) throws MqttException {
         Link.context = context;
         connect();
         client.setCallback(new MqttCallbackExtended() {
@@ -56,6 +56,8 @@ public class Link extends AppCompatActivity {
             public void deliveryComplete(IMqttDeliveryToken token) {
             }
         });
+
+        client.subscribe("project-jarvis/feedback", 1);
     }
 
     // ** MQTT Connection **

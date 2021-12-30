@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class Controller {
 
-    Link linkObject = new Link();
+    Link link = new Link();
     TextToSpeech textToSpeech;
     Context context;
 
@@ -22,17 +22,11 @@ public class Controller {
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
         String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
         if (resultString.contains("turn on the lamp")) {
-
+            //publish "turnOn" to jarvis/livingroom/floorlamp
             feedback("Turning on the lamp");
         } else if (resultString.contains(("turn off the lamp"))) {
-
+            //publish "turnOff" to jarvis/livingroom/floorlamp
             feedback("Turning off the lamp");
-        } else if (resultString.contains(("turn on the christmas tree"))) {
-
-            feedback("Turning on the christmas tree");
-        } else if (resultString.contains(("turn off the christmas tree"))) {
-
-            feedback("Turning off the christmas tree");
         } else {
             feedback("No valid input, please try again!");
         }

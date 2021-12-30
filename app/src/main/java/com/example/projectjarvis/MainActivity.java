@@ -13,6 +13,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.eclipse.paho.client.mqttv3.MqttException;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -49,7 +51,11 @@ public class MainActivity extends AppCompatActivity {
         controller = new Controller(textToSpeech, getApplicationContext());
 
         //MQTT Connect
-        link.mqttConnect("project-jarvis/floor-lamp", getApplicationContext()); //TODO variabel
+        try {
+            link.mqttConnect("project-jarvis/floor-lamp", getApplicationContext()); //TODO variabel
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
 
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
@@ -89,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
-
 
 
 }
