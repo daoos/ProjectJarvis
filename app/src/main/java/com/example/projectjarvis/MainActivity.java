@@ -30,8 +30,6 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView voiceInput;
     private TextToSpeech textToSpeech;
-    private Controller controller;
-    private final Link link = new Link();
     private static final String FLOOR_LAMP = "project-jarvis/floor-lamp";
     private MqttAndroidClient client;
     private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
@@ -46,9 +44,7 @@ public class MainActivity extends AppCompatActivity {
         turnOnBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOn"));
 
         Button turnOffBtn = findViewById(R.id.turnOffBtn);
-        turnOffBtn.setOnClickListener(v -> {
-            publish(FLOOR_LAMP, "device/turnOff");
-        });
+        turnOffBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOff"));
 
         ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
@@ -58,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
             //textToSpeech.setLanguage(Locale.US) TODO: Can't set locale on virtual machine
         }
         );
-        controller = new Controller(textToSpeech, getApplicationContext());
 
         //MQTT Connect
 
@@ -102,13 +97,13 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK && data != null) {
                     ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     voiceInput.setText(result.get(0));
-                    controller.decodeInput(result);
+                    decodeInput(result);
                 }
                 break;
         }
     }
 
-
+    // Old LINK
     public void mqttConnect(String topic) throws MqttException {
         String feedbackTopic = "project-jarvis/feedback";
         connect();
@@ -141,8 +136,8 @@ public class MainActivity extends AppCompatActivity {
                 using data from newMessage */
                 //TODO Add code
                 if (topic.equals(feedbackTopic)) {
-                    //feedback-klassen i kontroller?
-                    // feedback(message.decode());
+                    //TODO- funkar inte
+                    //feedback((message.getPayload().toString()));
                 }
             }
 
@@ -227,5 +222,28 @@ public class MainActivity extends AppCompatActivity {
         } catch (MqttException e) {
             e.printStackTrace();
         }
+    }
+
+    //OLD Controller
+    public void decodeInput(ArrayList<String> result) {
+
+        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
+        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
+        if (resultString.contains("turn on the lamp")) {
+            //publish "turnOn" to jarvis/livingroom/floorlamp
+            feedback("Turning on the lamp");
+        } else if (resultString.contains(("turn off the lamp"))) {
+            //publish "turnOff" to jarvis/livingroom/floorlamp
+            feedback("Turning off the lamp");
+        } else {
+            feedback("No valid input, please try again!");
+        }
+    }
+
+    public void feedback(String string) {
+        System.out.println(string);
+        textToSpeech.speak(string, TextToSpeech.QUEUE_FLUSH, null);
+        Toast toast = Toast.makeText(getApplicationContext(), string, Toast.LENGTH_SHORT);
+        toast.show();
     }
 }
