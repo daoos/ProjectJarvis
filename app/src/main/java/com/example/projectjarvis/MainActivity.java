@@ -89,9 +89,10 @@ public class MainActivity extends AppCompatActivity {
         //TODO: Remove alarm button, change to voice recog
         Button alarmBtn = findViewById(R.id.alarm);
         alarmBtn.setOnClickListener(v -> {
-            publish(ALARM_TOPIC, "activate");
-            System.out.println("publishing activate");
-            if (ringtoneActive) {
+            if (!ringtoneActive) {
+                publish(ALARM_TOPIC, "activate");
+                System.out.println("publishing activate");
+            } else {
                 publish(ALARM_TOPIC, "deactivate");
                 System.out.println("publishing deactivate");
             }
