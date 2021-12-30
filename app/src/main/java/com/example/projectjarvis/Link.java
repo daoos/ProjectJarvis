@@ -22,6 +22,7 @@ public class Link extends AppCompatActivity {
     private static Context context;
 
     public void mqttConnect(String topic, Context context) throws MqttException {
+        String feedbackTopic = "project-jarvis/feedback";
         Link.context = context;
         connect();
         client.setCallback(new MqttCallbackExtended() {
@@ -30,9 +31,11 @@ public class Link extends AppCompatActivity {
                 if (reconnect) {
                     System.out.println("Reconnected to : " + serverURI); // Re-subscribe as we lost it due to new session
                     subscribe(topic); //TODO - Byt ut
+                    subscribe(feedbackTopic);
                 } else {
                     System.out.println("Connected to: " + serverURI);
                     subscribe(topic);
+                    subscribe(feedbackTopic);
                 }
             }
 
@@ -50,14 +53,16 @@ public class Link extends AppCompatActivity {
                 /* add code here to interact with elements (text views, buttons)
                 using data from newMessage */
                 //TODO Add code
+                if (topic.equals(feedbackTopic)) {
+                    //feedback-klassen i kontroller?
+                    // feedback(message.decode());
+                }
             }
 
             @Override
             public void deliveryComplete(IMqttDeliveryToken token) {
             }
         });
-
-//        subscribe("project-jarvis/feedback");
     }
 
     // ** MQTT Connection **

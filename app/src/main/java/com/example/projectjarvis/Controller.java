@@ -32,7 +32,7 @@ public class Controller {
         }
     }
 
-    private void feedback(String string) {
+    public void feedback(String string) {
         System.out.println(string);
         textToSpeech.speak(string, TextToSpeech.QUEUE_FLUSH, null);
         Toast toast = Toast.makeText(context, string, Toast.LENGTH_SHORT);
