@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             getSpeechInput(v.getRootView()); //activates voice recog when clicking
         });
 
-        //TODO: Remove alarm button
+        //TODO: Remove alarm button, change to voice recog
         Button alarmBtn = findViewById(R.id.alarm);
         alarmBtn.setOnClickListener(v -> {
             publish(ALARM_TOPIC, "activate");
