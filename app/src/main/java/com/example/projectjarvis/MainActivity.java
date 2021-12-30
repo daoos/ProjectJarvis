@@ -3,9 +3,7 @@ package com.example.projectjarvis;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
@@ -22,12 +20,14 @@ public class MainActivity extends AppCompatActivity {
     private TextView voiceInput;
     private TextToSpeech textToSpeech;
     private Controller controller;
-    private final Link linkClass = new Link();
+    private final Link link = new Link();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
 
         ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         controller = new Controller(textToSpeech, getApplicationContext());
 
         //MQTT Connect
-        linkClass.mqttConnect("project-jarvis/lamp", getApplicationContext());
+        link.mqttConnect("project-jarvis/floor-lamp", getApplicationContext()); //TODO variabel
 
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
@@ -80,5 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
+
+
 
 }

@@ -71,4 +71,25 @@
         app:srcCompat="@drawable/ic_devices"
         tools:srcCompat="@drawable/ic_devices" />
 
+    <Button
+        android:id="@+id/turnOnBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="202dp"
+        android:text="Turn On"
+        app:layout_constraintEnd_toStartOf="@+id/devicesBtn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/turnOffBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="192dp"
+        android:text="Turn Off"
+        app:layout_constraintEnd_toStartOf="@+id/devicesBtn"
+        app:layout_constraintTop_toBottomOf="@+id/turnOnBtn" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

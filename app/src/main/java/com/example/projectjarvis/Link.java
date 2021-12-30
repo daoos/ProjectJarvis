@@ -46,8 +46,9 @@ public class Link extends AppCompatActivity {
                 String newMessage = new String(message.getPayload());
                 System.out.println("Incoming message: " + newMessage);
                 //txv_light.setText("HEJ");
-            /* add code here to interact with elements (text views, buttons)
-            using data from newMessage */
+
+                /* add code here to interact with elements (text views, buttons)
+                using data from newMessage */
                 //TODO Add code
             }
 
@@ -83,8 +84,29 @@ public class Link extends AppCompatActivity {
         }
     }
 
-    private void publish(String topic) {
+    public void publish(String topic, String message) {
+        try {
+            MqttMessage mqttMessage = new MqttMessage(message.getBytes());
+            mqttMessage.setQos(1);
+            IMqttToken subToken = client.publish(topic, mqttMessage);
+            subToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    System.out.println("Publish successful to topic: " + topic);
 
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken,
+                                      Throwable exception) {
+                    System.out.println("Failed to publish to topic: " + topic);
+                    // The subscription could not be performed, maybe the user was not
+                    // authorized to subscribe on the specified topic e.g. using wildcards
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
     }
 
     //Sets a subscription to the set topic, using the client from connect().
