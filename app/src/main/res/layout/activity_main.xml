@@ -104,4 +104,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/result_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="132dp"
+        android:text="TextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pause" />
+
+    <Button
+        android:id="@+id/recognize_mic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/recognize_microphone"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <ToggleButton
+        android:id="@+id/pause"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textOff="@string/pause"
+        android:textOn="@string/continueRecognition"
+        app:layout_constraintTop_toBottomOf="@+id/recognize_mic"
+        tools:layout_editor_absoluteX="0dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

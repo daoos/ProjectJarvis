@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.alphacephei:vosk-android:0.3.32@aar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/a4db55624247757e5d6bbcd4cb06d9bf/transformed/jetified-vosk-android-0.3.32/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/a4db55624247757e5d6bbcd4cb06d9bf/transformed/jetified-vosk-android-0.3.32/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/a4db55624247757e5d6bbcd4cb06d9bf/transformed/jetified-vosk-android-0.3.32/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
