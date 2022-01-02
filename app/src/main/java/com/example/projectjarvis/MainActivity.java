@@ -42,6 +42,10 @@ import org.vosk.android.StorageService;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements
         RecognitionListener {
@@ -56,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements
     private boolean ringtoneActive = false;
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
     private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
+    private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
+    private static final String TIMER_TOPIC_CONTROL = "project-jarvis/timer/control";
     private static final String[] alarmTopics = {ALARM_TOPIC_CONTROL, ALARM_TOPIC_CREATE};
     private static final String SHOPPING_LIST_CREATE = "project-jarvis/shopping-list/create"; //TODO: ONÖDIG?
     private static final String SHOPPING_LIST_CONTROL = "project-jarvis/shopping-list/control";
@@ -162,18 +168,6 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-//    public void getSpeechInput(View view) {
-//        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-//
-//        if (intent.resolveActivity(getPackageManager()) != null) {
-//            startActivityForResult(intent, 10);
-//        } else {
-//            Toast.makeText(this, "Your device does not support speech input", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -206,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements
                 for (String topic : alarmTopics) {
                     subscribe(topic);
                 }
+                subscribe(TIMER_TOPIC_CONTROL);
             }
 
             @Override
@@ -236,7 +231,24 @@ public class MainActivity extends AppCompatActivity implements
                         System.out.println("Alarm error");
                         e.printStackTrace();
                     }
-                } else if(topic.equals(SHOPPING_LIST_READ)) {
+                } else if (topic.equals(TIMER_TOPIC_CONTROL)){
+                    System.out.println("TIMER TOPIC-Control");
+                    try {
+                        if (newMessage.contains("play")) {
+                            System.out.println("Playing timer");
+                            r.play();
+                            ringtoneActive = true;
+                            feedback("Time's up!");
+                        } else if (newMessage.contains("stop")) {
+                            System.out.println("Turning off timer");
+                            r.stop();
+                            ringtoneActive = false;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Alarm error");
+                        e.printStackTrace();
+                    }
+                } else if (topic.equals(SHOPPING_LIST_READ)) {
                     feedback(newMessage);
                 }
                 if (topic.equals(feedbackTopic)) {
@@ -327,21 +339,51 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-//    //OLD Controller
-//    public void decodeInput(ArrayList<String> result) {
-//
-//        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-//        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
-//        if (resultString.contains("turn on the lamp")) {
-//            //publish "turnOn" to jarvis/livingroom/floorlamp
-//            feedback("Turning on the lamp");
-//        } else if (resultString.contains(("turn off the lamp"))) {
-//            //publish "turnOff" to jarvis/livingroom/floorlamp
-//            feedback("Turning off the lamp");
-//        } else {
-//            feedback("No valid input, please try again!");
-//        }
-//    }
+    public void decodeInput(String result) {
+        if (result.equals("text")) {
+            return; //Ignores the basic "text" input if nothing has been heard
+        }
+        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
+        if (result.contains("lamp") && result.contains("on")) {
+            publish(FLOOR_LAMP, "device/TurnOn");
+            feedback("Turning on the lamp");
+        } else if (result.contains("lamp") && (result.contains("off")) || result.contains("of")) {
+            publish(FLOOR_LAMP, "device/TurnOff");
+            feedback("Turning off the lamp");
+        } else if (result.contains("set") && result.contains("timer")) {
+            long numbers = checkNumbers(result);
+            System.out.println("NUMBERS ARE: " + numbers);
+            String toSend = cleanInput(result, "Set timer");
+            //WHAT SHOULD BE SENT IS: set,timer,(n)time
+            System.out.println("TO SEND IS: " + toSend + numbers);
+            publish(TIMER_TOPIC_CREATE, toSend + numbers);
+        } else {
+            feedback("No valid input, please try again!");
+        }
+    }
+
+    private String cleanInput(String input, String keywords) {
+        StringBuilder regexBuilder = new StringBuilder();
+        regexBuilder.append("(?i)\\b(");
+        String[] keyWordList = keywords.split(" ");
+        for (int i = 0; i < keyWordList.length; i++) {
+            if (i == 0) {
+                regexBuilder.append(keyWordList[i]);
+            } else {
+                regexBuilder.append("|");
+                regexBuilder.append(keyWordList[i]);
+            }
+        }
+        regexBuilder.append(")\\b");
+        System.out.println(regexBuilder.toString());
+        Pattern pattern = Pattern.compile(regexBuilder.toString());
+        Matcher matcher = pattern.matcher(input);
+        StringBuilder output = new StringBuilder();
+        while (matcher.find()) {
+            output.append(matcher.group()).append(",");
+        }
+        return output.toString();
+    }
 
     public void feedback(String string) {
         System.out.println(string);
@@ -392,6 +434,19 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onResult(String hypothesis) {
         voiceInput.append(hypothesis + "\n");
+        String word = filter(hypothesis);
+        System.out.println("WORD: " + word);
+        decodeInput(word);
+    }
+
+    private static String filter(String input) {
+        //Remove "text" from the String and the JSON-esque styling
+        String cleanStr = input.replaceAll("[^A-Za-z0-9' ]", "").replaceAll(" +", " ");
+        String[] words = cleanStr.trim().split(" ", 2);
+        if (words.length > 0) {
+            return words[words.length - 1];
+        }
+        return "ERROR, try again";
     }
 
     @Override
@@ -417,7 +472,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onTimeout() {
         setUiState(STATE_DONE);
     }
-
 
 
     private void recognizeMicrophone() {
@@ -491,4 +545,238 @@ public class MainActivity extends AppCompatActivity implements
             speechService.setPause(checked);
         }
     }
+
+
+    private long checkNumbers(String input) {
+        double multiplier = 1; //Amount of seconds the numbers are worth
+        long result = 0;
+        long output = 0;
+
+        List<String> allowedStrings = Arrays.asList
+                (
+                        "zero", "one", "two", "three", "four", "five", "six", "seven",
+                        "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+                        "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
+                        "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
+                        "hundred", "thousand", "million", "billion", "trillion"
+                );
+
+        if (input != null && input.length() > 0) {
+            String[] words = input.trim().split("\\s+");
+
+            for (String str : words) {
+                if (str.contains("minute")) {
+                    multiplier = 60;
+                } else if (str.contains("hour")) {
+                    multiplier = 3600;
+                } else if (str.contains("day")) {
+                    multiplier = 86400;
+                } else if (str.contains("week")) {
+                    multiplier = 604800;
+                } else if (str.contains("month")) {
+                    multiplier = 2629743.83;
+                } else if (str.contains("year")) {
+                    multiplier = 31556926;
+                }
+                if (allowedStrings.contains(str)) {
+                    if (str.equalsIgnoreCase("zero")) {
+                        result += 0;
+                    } else if (str.equalsIgnoreCase("one")) {
+                        result += 1;
+                    } else if (str.equalsIgnoreCase("two")) {
+                        result += 2;
+                    } else if (str.equalsIgnoreCase("three")) {
+                        result += 3;
+                    } else if (str.equalsIgnoreCase("four")) {
+                        result += 4;
+                    } else if (str.equalsIgnoreCase("five")) {
+                        result += 5;
+                    } else if (str.equalsIgnoreCase("six")) {
+                        result += 6;
+                    } else if (str.equalsIgnoreCase("seven")) {
+                        result += 7;
+                    } else if (str.equalsIgnoreCase("eight")) {
+                        result += 8;
+                    } else if (str.equalsIgnoreCase("nine")) {
+                        result += 9;
+                    } else if (str.equalsIgnoreCase("ten")) {
+                        result += 10;
+                    } else if (str.equalsIgnoreCase("eleven")) {
+                        result += 11;
+                    } else if (str.equalsIgnoreCase("twelve")) {
+                        result += 12;
+                    } else if (str.equalsIgnoreCase("thirteen")) {
+                        result += 13;
+                    } else if (str.equalsIgnoreCase("fourteen")) {
+                        result += 14;
+                    } else if (str.equalsIgnoreCase("fifteen")) {
+                        result += 15;
+                    } else if (str.equalsIgnoreCase("sixteen")) {
+                        result += 16;
+                    } else if (str.equalsIgnoreCase("seventeen")) {
+                        result += 17;
+                    } else if (str.equalsIgnoreCase("eighteen")) {
+                        result += 18;
+                    } else if (str.equalsIgnoreCase("nineteen")) {
+                        result += 19;
+                    } else if (str.equalsIgnoreCase("twenty")) {
+                        result += 20;
+                    } else if (str.equalsIgnoreCase("thirty")) {
+                        result += 30;
+                    } else if (str.equalsIgnoreCase("forty")) {
+                        result += 40;
+                    } else if (str.equalsIgnoreCase("fifty")) {
+                        result += 50;
+                    } else if (str.equalsIgnoreCase("sixty")) {
+                        result += 60;
+                    } else if (str.equalsIgnoreCase("seventy")) {
+                        result += 70;
+                    } else if (str.equalsIgnoreCase("eighty")) {
+                        result += 80;
+                    } else if (str.equalsIgnoreCase("ninety")) {
+                        result += 90;
+                    } else if (str.equalsIgnoreCase("hundred")) {
+                        result *= 100;
+                    } else if (str.equalsIgnoreCase("thousand")) {
+                        result *= 1000;
+                        output += result;
+                        result = 0;
+                    } else if (str.equalsIgnoreCase("million")) {
+                        result *= 1000000;
+                        output += result;
+                        result = 0;
+                    } else if (str.equalsIgnoreCase("billion")) {
+                        result *= 1000000000;
+                        output += result;
+                        result = 0;
+                    } else if (str.equalsIgnoreCase("trillion")) {
+                        result *= 1000000000000L;
+                        output += result;
+                        result = 0;
+                    }
+                }
+            }
+            output += result * multiplier;
+            System.out.println("Number result: " + output);
+        }
+        return output;
+    }
+
+//    BACKUP
+//    private long checkForNumbers(String input) {
+//        boolean isValidInput = true;
+//        long result = 0;
+//        long finalResult = 0;
+//        StringBuilder wordInput = new StringBuilder();
+//
+//        List<String> allowedStrings = Arrays.asList
+//                (
+//                        "zero", "one", "two", "three", "four", "five", "six", "seven",
+//                        "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+//                        "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
+//                        "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
+//                        "hundred", "thousand", "million", "billion", "trillion"
+//                );
+//
+//        if (input != null && input.length() > 0) {
+//            input = input.replaceAll("-", " ");
+//            input = input.toLowerCase().replaceAll(" and", " ");
+//            String[] splittedParts = input.trim().split("\\s+");
+//
+//            for (String str : splittedParts) {
+//                if (!allowedStrings.contains(str)) {
+//                    isValidInput = false;
+//                    System.out.println("Word found : " + str);
+//                    wordInput.append(str + " ");
+//                } else {
+//
+//                }
+//            }
+//            if (isValidInput) {
+//                System.out.println("VALID INPUT!");
+//                for (String str : splittedParts) {
+//                    if (str.equalsIgnoreCase("zero")) {
+//                        result += 0;
+//                    } else if (str.equalsIgnoreCase("one")) {
+//                        result += 1;
+//                    } else if (str.equalsIgnoreCase("two")) {
+//                        result += 2;
+//                    } else if (str.equalsIgnoreCase("three")) {
+//                        result += 3;
+//                    } else if (str.equalsIgnoreCase("four")) {
+//                        result += 4;
+//                    } else if (str.equalsIgnoreCase("five")) {
+//                        result += 5;
+//                    } else if (str.equalsIgnoreCase("six")) {
+//                        result += 6;
+//                    } else if (str.equalsIgnoreCase("seven")) {
+//                        result += 7;
+//                    } else if (str.equalsIgnoreCase("eight")) {
+//                        result += 8;
+//                    } else if (str.equalsIgnoreCase("nine")) {
+//                        result += 9;
+//                    } else if (str.equalsIgnoreCase("ten")) {
+//                        result += 10;
+//                    } else if (str.equalsIgnoreCase("eleven")) {
+//                        result += 11;
+//                    } else if (str.equalsIgnoreCase("twelve")) {
+//                        result += 12;
+//                    } else if (str.equalsIgnoreCase("thirteen")) {
+//                        result += 13;
+//                    } else if (str.equalsIgnoreCase("fourteen")) {
+//                        result += 14;
+//                    } else if (str.equalsIgnoreCase("fifteen")) {
+//                        result += 15;
+//                    } else if (str.equalsIgnoreCase("sixteen")) {
+//                        result += 16;
+//                    } else if (str.equalsIgnoreCase("seventeen")) {
+//                        result += 17;
+//                    } else if (str.equalsIgnoreCase("eighteen")) {
+//                        result += 18;
+//                    } else if (str.equalsIgnoreCase("nineteen")) {
+//                        result += 19;
+//                    } else if (str.equalsIgnoreCase("twenty")) {
+//                        result += 20;
+//                    } else if (str.equalsIgnoreCase("thirty")) {
+//                        result += 30;
+//                    } else if (str.equalsIgnoreCase("forty")) {
+//                        result += 40;
+//                    } else if (str.equalsIgnoreCase("fifty")) {
+//                        result += 50;
+//                    } else if (str.equalsIgnoreCase("sixty")) {
+//                        result += 60;
+//                    } else if (str.equalsIgnoreCase("seventy")) {
+//                        result += 70;
+//                    } else if (str.equalsIgnoreCase("eighty")) {
+//                        result += 80;
+//                    } else if (str.equalsIgnoreCase("ninety")) {
+//                        result += 90;
+//                    } else if (str.equalsIgnoreCase("hundred")) {
+//                        result *= 100;
+//                    } else if (str.equalsIgnoreCase("thousand")) {
+//                        result *= 1000;
+//                        finalResult += result;
+//                        result = 0;
+//                    } else if (str.equalsIgnoreCase("million")) {
+//                        result *= 1000000;
+//                        finalResult += result;
+//                        result = 0;
+//                    } else if (str.equalsIgnoreCase("billion")) {
+//                        result *= 1000000000;
+//                        finalResult += result;
+//                        result = 0;
+//                    } else if (str.equalsIgnoreCase("trillion")) {
+//                        result *= 1000000000000L;
+//                        finalResult += result;
+//                        result = 0;
+//                    }
+//                }
+//
+//                finalResult += result;
+//                result = 0;
+//                System.out.println("FINAL RESULT: " + finalResult);
+//            }
+//        }
+//        return finalResult;
+//    }
 }
