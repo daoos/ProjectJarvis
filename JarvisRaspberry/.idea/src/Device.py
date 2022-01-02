@@ -1,7 +1,6 @@
 #Dictionary (instead of javas hashmap) for storing devices
 devices = dict()
 
-#internal class for Devices
 class Device:
 
     def __init__(self, name, id):
@@ -13,7 +12,7 @@ class Device:
         return "<Device name:%s id:%s>" % (self.name, self.id)
 
     def __str__(self):
-        return "From str method of Device: name is %s, b is %s" % (self.name, self.id)
+        return "From str method of Device: name is %s, id is %s" % (self.name, self.id)
 
-# floorLamp = Device("FloorLamp", "10124318")
-# testLamp = Device("TestLampy", "202")
+floorLamp = Device("project-jarvis/floor-lamp", "10124318")
+testLamp = Device("TestLampy", "202")
