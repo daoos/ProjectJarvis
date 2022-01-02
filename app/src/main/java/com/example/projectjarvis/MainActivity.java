@@ -21,7 +21,6 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -87,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements
         setUiState(STATE_START);
 
         findViewById(R.id.recognize_mic).setOnClickListener(view -> recognizeMicrophone());
-        ((ToggleButton) findViewById(R.id.pause)).setOnCheckedChangeListener((view, isChecked) -> pause(isChecked));
+        //((ToggleButton) findViewById(R.id.pause)).setOnCheckedChangeListener((view, isChecked) -> pause(isChecked));
 
         LibVosk.setLogLevel(LogLevel.INFO);
 
@@ -451,44 +450,44 @@ public class MainActivity extends AppCompatActivity implements
                 voiceInput.setMovementMethod(new ScrollingMovementMethod());
                 //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(false);
-                findViewById(R.id.pause).setEnabled((false));
+                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_READY:
                 voiceInput.setText(R.string.ready);
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
                 //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                findViewById(R.id.pause).setEnabled((false));
+                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_DONE:
                 //((Button) findViewById(R.id.recognize_file)).setText(R.string.recognize_file);
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
                 //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                findViewById(R.id.pause).setEnabled((false));
+                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_FILE:
                 //((Button) findViewById(R.id.recognize_file)).setText(R.string.stop_file);
                 voiceInput.setText(getString(R.string.starting));
                 findViewById(R.id.recognize_mic).setEnabled(false);
                 //findViewById(R.id.recognize_file).setEnabled(true);
-                findViewById(R.id.pause).setEnabled((false));
+                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_MIC:
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.stop_microphone);
                 voiceInput.setText(getString(R.string.say_something));
                 //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                findViewById(R.id.pause).setEnabled((true));
+                //findViewById(R.id.pause).setEnabled((true));
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + state);
         }
     }
 
-    private void pause(boolean checked) {
+    /*private void pause(boolean checked) {
         if (speechService != null) {
             speechService.setPause(checked);
         }
-    }
+    }*/
 }
