@@ -22,8 +22,8 @@
 
     <ImageButton
         android:id="@+id/voiceBtn"
-        android:layout_width="269dp"
-        android:layout_height="258dp"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
@@ -44,78 +44,78 @@
 
     <TextView
         android:id="@+id/voiceInput"
-        android:background="@drawable/background_textview"
         android:layout_width="250dp"
-        android:layout_height="130dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="66dp"
+        android:layout_height="140dp"
+        android:layout_marginTop="11dp"
+        android:layout_marginBottom="19dp"
+        android:background="@drawable/background_textview"
         android:gravity="bottom"
         android:scrollbars="vertical"
         android:textAppearance="?android:attr/textAppearanceMedium"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/voiceBtn" />
+        app:layout_constraintTop_toBottomOf="@+id/recognize_mic" />
 
     <ImageButton
         android:id="@+id/devicesBtn"
         android:layout_width="61dp"
         android:layout_height="57dp"
-        android:layout_marginStart="312dp"
-        android:layout_marginTop="74dp"
-        android:layout_marginEnd="38dp"
-        android:layout_marginBottom="64dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginTop="68dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
         android:background="#00232323"
         android:scaleType="centerCrop"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/voiceInput"
+        app:layout_constraintTop_toBottomOf="@+id/recognize_mic"
         app:srcCompat="@drawable/ic_devices"
         tools:srcCompat="@drawable/ic_devices" />
 
     <Button
         android:id="@+id/turnOnBtn"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="202dp"
+        android:layout_marginTop="4dp"
         android:text="Turn On"
-        app:layout_constraintEnd_toStartOf="@+id/devicesBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/turnOffBtn"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="192dp"
         android:text="Turn Off"
-        app:layout_constraintEnd_toStartOf="@+id/devicesBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/turnOnBtn" />
 
     <Button
         android:id="@+id/alarm"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="112dp"
-        android:layout_marginBottom="31dp"
         android:text="ALARM"
-        app:layout_constraintBottom_toTopOf="@+id/textView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/turnOffBtn" />
 
     <Button
         android:id="@+id/recognize_mic"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="230dp"
+        android:layout_height="230dp"
+        android:layout_marginTop="20dp"
         android:text="@string/recognize_microphone"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        tools:layout_editor_absoluteX="0dp" />
+        app:layout_constraintBottom_toTopOf="@+id/voiceInput"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
-    <ToggleButton
+    <!--<ToggleButton
         android:id="@+id/pause"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -124,5 +124,6 @@
         android:textOn="@string/continueRecognition"
         app:layout_constraintTop_toBottomOf="@+id/recognize_mic"
         tools:layout_editor_absoluteX="0dp" />
+        -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

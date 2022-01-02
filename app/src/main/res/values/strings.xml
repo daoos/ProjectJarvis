@@ -20,7 +20,7 @@
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
 
 
-    <string name="recognize_microphone">Recognize Microphone</string>
+    <string name="recognize_microphone">Activate</string>
     <string name="stop_microphone">Stop Microphone</string>
     <string name="preparing">Preparing the recognizer\n</string>
     <string name="ready">Ready\n</string>
