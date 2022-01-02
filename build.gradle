@@ -4,7 +4,7 @@ buildscript {
         google()
         mavenCentral()
         maven {
-            url "https://repo.eclipse.org/content/repositories/paho-snapshots/"
+            url 'https://alphacephei.com/maven/'
         }
     }
     dependencies {
@@ -15,6 +15,7 @@ buildscript {
         // in the individual module build.gradle files
     }
 }
+
 
 task clean(type: Delete) {
     delete rootProject.buildDir

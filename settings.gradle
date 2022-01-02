@@ -8,3 +8,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "ProjectJarvis"
 include ':app'
+include ':models'

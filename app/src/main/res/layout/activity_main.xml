@@ -45,10 +45,13 @@
     <TextView
         android:id="@+id/voiceInput"
         android:background="@drawable/background_textview"
-        android:layout_width="263dp"
-        android:layout_height="123dp"
+        android:layout_width="250dp"
+        android:layout_height="130dp"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="66dp"
+        android:gravity="bottom"
+        android:scrollbars="vertical"
+        android:textAppearance="?android:attr/textAppearanceMedium"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -103,16 +106,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/result_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="132dp"
-        android:text="TextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pause" />
 
     <Button
         android:id="@+id/recognize_mic"

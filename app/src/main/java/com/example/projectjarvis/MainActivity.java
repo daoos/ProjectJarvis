@@ -17,7 +17,6 @@ import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -43,12 +42,10 @@ import org.vosk.android.StorageService;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements
         RecognitionListener {
 
-    private TextView voiceInput;
     private TextToSpeech textToSpeech;
     private static final String FLOOR_LAMP = "project-jarvis/floor-lamp";
     private MqttAndroidClient client;
@@ -78,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements
     private Model model;
     private SpeechService speechService;
     private SpeechStreamService speechStreamService;
-    private TextView resultView;
+    private TextView voiceInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
 
         //------Vosk
-        resultView = findViewById(R.id.result_text);
+        voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
         setUiState(STATE_START);
 
         findViewById(R.id.recognize_mic).setOnClickListener(view -> recognizeMicrophone());
@@ -110,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements
         turnOffBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOff"));
 
         ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
-        voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         r = RingtoneManager.getRingtone(getApplicationContext(), notification);
@@ -136,9 +132,9 @@ public class MainActivity extends AppCompatActivity implements
             System.out.println("Opening devices!");
         });
 
-        voiceBtn.setOnClickListener(v -> {
-            getSpeechInput(v.getRootView()); //activates voice recog when clicking
-        });
+//        voiceBtn.setOnClickListener(v -> {
+//            getSpeechInput(v.getRootView()); //activates voice recog when clicking
+//        });
 
         //TODO: Remove alarm button, change to voice recog
         //TODO: Decode voice input and send a name and n seconds to ALARM_TOPIC!
@@ -166,17 +162,17 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    public void getSpeechInput(View view) {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, 10);
-        } else {
-            Toast.makeText(this, "Your device does not support speech input", Toast.LENGTH_SHORT).show();
-        }
-    }
+//    public void getSpeechInput(View view) {
+//        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+//
+//        if (intent.resolveActivity(getPackageManager()) != null) {
+//            startActivityForResult(intent, 10);
+//        } else {
+//            Toast.makeText(this, "Your device does not support speech input", Toast.LENGTH_SHORT).show();
+//        }
+//    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -354,6 +350,15 @@ public class MainActivity extends AppCompatActivity implements
         toast.show();
     }
 
+    private void initModel() {
+        StorageService.unpack(this, "model-en-us", "model",
+                (model) -> {
+                    this.model = model;
+                    setUiState(STATE_READY);
+                },
+                (exception) -> setErrorState("Failed to unpack the model " + exception.getMessage()));
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -386,12 +391,12 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onResult(String hypothesis) {
-        resultView.append(hypothesis + "\n");
+        voiceInput.append(hypothesis + "\n");
     }
 
     @Override
     public void onFinalResult(String hypothesis) {
-        resultView.append(hypothesis + "\n");
+        voiceInput.append(hypothesis + "\n");
         setUiState(STATE_DONE);
         if (speechStreamService != null) {
             speechStreamService = null;
@@ -400,7 +405,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onPartialResult(String hypothesis) {
-        resultView.append(hypothesis + "\n");
+        voiceInput.append(hypothesis + "\n");
     }
 
     @Override
@@ -413,14 +418,7 @@ public class MainActivity extends AppCompatActivity implements
         setUiState(STATE_DONE);
     }
 
-    private void initModel() {
-        StorageService.unpack(this, "model-en-us", "model",
-                (model) -> {
-                    this.model = model;
-                    setUiState(STATE_READY);
-                },
-                (exception) -> setErrorState("Failed to unpack the model" + exception.getMessage()));
-    }
+
 
     private void recognizeMicrophone() {
         if (speechService != null) {
@@ -440,7 +438,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setErrorState(String message) {
-        resultView.setText(message);
+        voiceInput.setText(message);
         ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
         //findViewById(R.id.recognize_file).setEnabled(false);
         findViewById(R.id.recognize_mic).setEnabled(false);
@@ -449,14 +447,14 @@ public class MainActivity extends AppCompatActivity implements
     private void setUiState(int state) {
         switch (state) {
             case STATE_START:
-                resultView.setText(R.string.preparing);
-                resultView.setMovementMethod(new ScrollingMovementMethod());
+                voiceInput.setText(R.string.preparing);
+                voiceInput.setMovementMethod(new ScrollingMovementMethod());
                 //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(false);
                 findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_READY:
-                resultView.setText(R.string.ready);
+                voiceInput.setText(R.string.ready);
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
                 //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.recognize_mic).setEnabled(true);
@@ -471,14 +469,14 @@ public class MainActivity extends AppCompatActivity implements
                 break;
             case STATE_FILE:
                 //((Button) findViewById(R.id.recognize_file)).setText(R.string.stop_file);
-                resultView.setText(getString(R.string.starting));
+                voiceInput.setText(getString(R.string.starting));
                 findViewById(R.id.recognize_mic).setEnabled(false);
                 //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_MIC:
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.stop_microphone);
-                resultView.setText(getString(R.string.say_something));
+                voiceInput.setText(getString(R.string.say_something));
                 //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(true);
                 findViewById(R.id.pause).setEnabled((true));
