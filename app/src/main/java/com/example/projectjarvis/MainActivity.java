@@ -40,7 +40,12 @@ public class MainActivity extends AppCompatActivity {
 
     //creates the ringtone / alarm
     private boolean ringtoneActive = false;
-    private static final String ALARM_TOPIC = "project-jarvis/alarm";
+    private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
+    private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
+    private static final String[] alarmTopics = {ALARM_TOPIC_CONTROL, ALARM_TOPIC_CREATE};
+    private static final String SHOPPING_LIST_CREATE = "project-jarvis/shopping-list/create"; //TODO: ONÖDIG?
+    private static final String SHOPPING_LIST_CONTROL = "project-jarvis/shopping-list/control";
+    private static final String SHOPPING_LIST_READ = "project-jarvis/shopping-list/read";
     private final Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
     private Ringtone r;
 
@@ -87,14 +92,27 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //TODO: Remove alarm button, change to voice recog
+        //TODO: Decode voice input and send a name and n seconds to ALARM_TOPIC!
+        //TODO: Message should be written: "Alarm name, length, repeatable? (bool)"
         Button alarmBtn = findViewById(R.id.alarm);
         alarmBtn.setOnClickListener(v -> {
             if (!ringtoneActive) {
-                publish(ALARM_TOPIC, "activate");
-                System.out.println("publishing activate");
+//                Calendar date = Calendar.getInstance();
+//                System.out.println("Current Date and Time : " + date.getTime());
+//                long timeInSecs = date.getTimeInMillis();
+//                Date afterAdding = new Date(timeInSecs + (10 * 1000)); //adds ten seconds
+//                System.out.println("After adding 1 min : " + afterAdding);
+//                String setTime = afterAdding.toString();
+                String alarmName = "Wake up";
+                String alarmLength = "10";
+                String repeatable = "false";
+                String message = alarmName + "," + alarmLength + "," + repeatable;
+                publish(ALARM_TOPIC_CREATE, message);
+                System.out.println("Publishing alarm for " + alarmName);
+
             } else {
-                publish(ALARM_TOPIC, "deactivate");
-                System.out.println("publishing deactivate");
+                publish(ALARM_TOPIC_CONTROL, "stop");
+                System.out.println("publishing stop");
             }
         });
     }
@@ -138,9 +156,11 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     System.out.println("Connected to: " + serverURI);
                 }
-                subscribe(topic); //TODO - Byt ut
+                subscribe(topic); //TODO - Byt ut?
                 subscribe(feedbackTopic);
-                subscribe(ALARM_TOPIC);
+                for (String topic : alarmTopics) {
+                    subscribe(topic);
+                }
             }
 
             @Override
@@ -152,16 +172,17 @@ public class MainActivity extends AppCompatActivity {
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 String newMessage = new String(message.getPayload());
                 System.out.println("Incoming message: " + topic + " " + newMessage);
+                String[] separatedMessage = newMessage.split(",");
 
-                if (topic.equals(ALARM_TOPIC)) {
+                if (topic.equals(ALARM_TOPIC_CONTROL)) {
                     System.out.println("alarmtopic!");
                     try {
-                        if (newMessage.equals("activate")) {
+                        if (newMessage.contains("play")) {
                             System.out.println("Playing alarm");
                             r.play();
                             ringtoneActive = true;
-                            feedback("Alarm!");
-                        } else if (newMessage.equals("deactivate")) {
+                            feedback("Alarm: " + separatedMessage[1]);
+                        } else if (newMessage.contains("stop")) {
                             System.out.println("Turning off alarm");
                             r.stop();
                             ringtoneActive = false;
@@ -170,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
                         System.out.println("Alarm error");
                         e.printStackTrace();
                     }
+                } else if(topic.equals(SHOPPING_LIST_READ)) {
+                    feedback(newMessage);
                 }
                 if (topic.equals(feedbackTopic)) {
                     System.out.println("FEEDBACK: " + newMessage);
