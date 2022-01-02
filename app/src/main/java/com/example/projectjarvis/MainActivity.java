@@ -40,9 +40,15 @@ import org.vosk.android.SpeechStreamService;
 import org.vosk.android.StorageService;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements
 
     //creates the ringtone / alarm
     private boolean ringtoneActive = false;
+    private static final Locale SWEDEN = new Locale("sv", "SE");
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
     private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
     private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
@@ -116,25 +123,29 @@ public class MainActivity extends AppCompatActivity implements
 
         r = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
+        //TTS OnInit NOTE: Can't set locale on virtual machine
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
-            //textToSpeech.setLanguage(Locale.US) TODO: Can't set locale on virtual machine
-        }
-        );
+            if (status != TextToSpeech.ERROR) {
+                textToSpeech.setLanguage(Locale.US);
+                System.out.println("YES INIT");
+            } else {
+                Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                System.out.println("NO INIT. Probably running on emulator");
+            }
+        });
+
 
         //MQTT Connect
-
         try {
-            mqttConnect(FLOOR_LAMP); //TODO variabel
+            mqttConnect(FLOOR_LAMP);
         } catch (MqttException e) {
             e.printStackTrace();
         }
 
-
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
             startActivity(intent);
-
-            System.out.println("Opening devices!");
+            System.out.println("Opening view devices!");
         });
 
 //        voiceBtn.setOnClickListener(v -> {
@@ -167,20 +178,21 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case 10:
-                if (resultCode == RESULT_OK && data != null) {
-                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    voiceInput.setText(result.get(0));
-//                    decodeInput(result); CURRENTLY UNUSED
-                }
-                break;
-        }
-    }
+    //TODO: Vad är det här för? Gamla voice recog?
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        switch (requestCode) {
+//            case 10:
+//                if (resultCode == RESULT_OK && data != null) {
+//                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+//                    voiceInput.setText(result.get(0));
+////                    decodeInput(result); CURRENTLY UNUSED
+//                }
+//                break;
+//        }
+//    }
 
     // Old LINK
     public void mqttConnect(String topic) throws MqttException {
@@ -230,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements
                         System.out.println("Alarm error");
                         e.printStackTrace();
                     }
-                } else if (topic.equals(TIMER_TOPIC_CONTROL)){
+                } else if (topic.equals(TIMER_TOPIC_CONTROL)) {
                     System.out.println("TIMER TOPIC-Control");
                     try {
                         if (newMessage.contains("play")) {
@@ -296,9 +308,7 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     System.out.println("Publish successful to topic: " + topic);
-
                 }
-
                 @Override
                 public void onFailure(IMqttToken asyncActionToken,
                                       Throwable exception) {
@@ -356,8 +366,32 @@ public class MainActivity extends AppCompatActivity implements
             //WHAT SHOULD BE SENT IS: set,timer,(n)time
             System.out.println("TO SEND IS: " + toSend + numbers);
             publish(TIMER_TOPIC_CREATE, toSend + numbers);
+        } else if (result.contains("set") || result.contains("create") && result.contains("alarm")) {
+            System.out.println("CREATE ALARM");
+//            int secondsToAlarm = createAlarm();
+        } else if (result.contains("what") && result.contains("time") && ((result.contains("is it") || result.contains("is the")) || result.contains("'s the"))) {
+            feedback("The time is " + getCurrentTime());
         } else {
             feedback("No valid input, please try again!");
+        }
+    }
+
+    //TODO: This is what'll be read aloud
+    private String readTime(Date date) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
+        return format.format(date);
+    }
+
+    private String getCurrentTime() {
+        try {
+            TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
+            TimeZone.setDefault(timeZone);
+            Calendar calendar = Calendar.getInstance(timeZone, SWEDEN);
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
+            return df.format(calendar.getTime());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "ERROR, getCurrentTime(): " + e;
         }
     }
 
@@ -389,6 +423,25 @@ public class MainActivity extends AppCompatActivity implements
         textToSpeech.speak(string, TextToSpeech.QUEUE_FLUSH, null);
         Toast toast = Toast.makeText(getApplicationContext(), string, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    //TODO: ALARM-METHOD
+    private int createAlarm(String targetTime) {
+        Calendar calendar = Calendar.getInstance();
+        Date today = calendar.getTime();
+        System.out.println("Current Date and Time : " + today.getTime());
+//        calendar.add(Calendar.SECOND, seconds);
+        Date targetDate = calendar.getTime();
+        System.out.println("Target Date and Time : " + targetDate.getTime());
+        //TODO: GOAL: set,alarm,tomorrow,17:00 - use cleanInput!
+
+//        String alarmName = "Wake up";
+//        String alarmLength = "10";
+//        String repeatable = "false";
+//        String message = alarmName + "," + alarmLength + "," + repeatable;
+//        publish(ALARM_TOPIC_CREATE, message);
+//        System.out.println("Publishing alarm for " + alarmName);
+        return 0;
     }
 
     private void initModel() {
