@@ -4,8 +4,8 @@
 4
 5    <uses-sdk
 6        android:minSdkVersion="21"
-6-->/Users/hugo/AndroidStudioProjects/ProjectJarvis/models/src/main/AndroidManifest.xml
+6-->C:\Users\johan\AndroidStudioProjects\ProjectJarvis\models\src\main\AndroidManifest.xml
 7        android:targetSdkVersion="31" />
-7-->/Users/hugo/AndroidStudioProjects/ProjectJarvis/models/src/main/AndroidManifest.xml
+7-->C:\Users\johan\AndroidStudioProjects\ProjectJarvis\models\src\main\AndroidManifest.xml
 8
 9</manifest>
