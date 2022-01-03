@@ -428,10 +428,11 @@ public class MainActivity extends AppCompatActivity implements
             } else if (input.contains("alarm") && (input.contains("off") || input.contains("of"))) {
                 alarmControl("stop");
             } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
+//                String time = ;
                 feedback("The time is " + stringTime(getCurrentTime()));
             } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
                 System.out.println("WEATHER");
-                cityInput.setText(input.substring(input.lastIndexOf(" ") + 1));
+                cityInput.setText(input.substring(input.lastIndexOf(" ") + 1)); //detect city
                 //feedback(getWeatherDetails(input.substring(input.lastIndexOf(" ") + 1)));
                 getWeatherDetails();
             } else {
@@ -472,9 +473,9 @@ public class MainActivity extends AppCompatActivity implements
     //Returns a String for the time instead of a Date object
     private String stringTime(Calendar calendar) {
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
-        System.out.println("STRINGTIME IS: " + format.format(calendar));
+        System.out.println("STRINGTIME IS: " + format.format(calendar.getTime()));
         //TODO: Decode the string into "DAY, the DATE" etc
-        return format.format(calendar);
+        return format.format(calendar.getTime());
     }
 
     //Gets the current local time in Stockholm
@@ -722,6 +723,7 @@ public class MainActivity extends AppCompatActivity implements
                             + "\n Feels Like: " + Math.round(feelsLike) + " °C"
                             + "\n Sky: " + description.substring(0, 1).toUpperCase() + description.substring(1).toLowerCase();
                     weatherResult.setText(output);
+                    feedback(output);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
