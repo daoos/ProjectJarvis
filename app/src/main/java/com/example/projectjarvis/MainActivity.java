@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         Button devices = findViewById(R.id.devices);
-        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName, command"));
+        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName, id, command"));
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
