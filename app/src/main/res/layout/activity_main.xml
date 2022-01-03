@@ -20,6 +20,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.275" />
 
+    <!--
     <ImageButton
         android:id="@+id/voiceBtn"
         android:layout_width="260dp"
@@ -39,7 +40,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.55"
         app:srcCompat="@drawable/microphone" />
-<!--        :onClick="getSpeechInput"-->
+-->
 
 
     <TextView
@@ -104,28 +105,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/turnOffBtn" />
 
+
     <Button
         android:id="@+id/recognize_mic"
-        android:layout_width="230dp"
-        android:layout_height="230dp"
-        android:layout_marginTop="49dp"
-        android:layout_marginBottom="164dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="40dp"
         android:text="@string/recognize_microphone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textView" />
+        app:layout_constraintTop_toTopOf="@+id/turnOnBtn" />
 
     <TextView
         android:id="@+id/weatherResult"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="2dp"
         android:text="Weather  result"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/voiceBtn" />
+        app:layout_constraintTop_toBottomOf="@+id/recognize_mic"
+        tools:layout_editor_absoluteX="-5dp" />
 
     <EditText
         android:id="@+id/cityInput"
@@ -134,11 +133,8 @@
         android:ems="10"
         android:hint="Enter city"
         android:inputType="textPersonName"
-        android:layout_marginBottom="0dp"
         tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp" />
-
-
+        tools:layout_editor_absoluteY="52dp" />
 
     <Button
         android:id="@+id/button"
@@ -148,16 +144,5 @@
         android:onClick="getWeatherDetails"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/alarm" />
-
-    <!--<ToggleButton
-        android:id="@+id/pause"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textOff="@string/pause"
-        android:textOn="@string/continueRecognition"
-        app:layout_constraintTop_toBottomOf="@+id/recognize_mic"
-        tools:layout_editor_absoluteX="0dp" />
-        -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

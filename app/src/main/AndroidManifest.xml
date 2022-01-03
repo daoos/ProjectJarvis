@@ -16,6 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectJarvis">
         <activity
+
             android:name=".Devices"
             android:parentActivityName=".MainActivity"
             android:exported="false" />
