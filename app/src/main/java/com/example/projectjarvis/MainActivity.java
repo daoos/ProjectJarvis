@@ -377,12 +377,9 @@ public class MainActivity extends AppCompatActivity implements
             publish(TIMER_TOPIC_CREATE, toSend + numbers);
         } else if (input.contains("set") || input.contains("create") && input.contains("alarm")) {
             System.out.println("CREATE ALARM");
-            String name = findName(input);
-            long numbers = findNumbers(input);
-            System.out.println("Alarm: " + name + " goes off in " + numbers + " seconds");
-//            String alarm = createAlarm(input);
-            //TODO: FIX
-//TODO:            publish(ALARM_TOPIC_CREATE, alarm);
+            System.out.println("CREATED ALARM: " + createAlarm(input));
+            //TODO: String STRING = createAlarm(input);
+//TODO:            publish(ALARM_TOPIC_CREATE, STRING:(name,every-day,8:00));
         } else if (input.contains("alarm") && (input.contains("off") || input.contains("of"))) {
             alarmControl("stop");
         } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
@@ -395,9 +392,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private String findName(String input) {
-        String name = "NONE";
+        String name = "noName";
         String patternString = "";
         boolean match = false;
+        //TODO: Stop name after "and"?
         if (input.contains("named")) {
             patternString = "named";
             match = true;
@@ -423,21 +421,22 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     //Returns a String for the time instead of a Date object
-    private String stringTime(Date date) {
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
-        return df.format(date);
+    private String stringTime(Calendar calendar) {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
+        System.out.println("STRINGTIME IS: " + format.format(calendar));
+        //TODO: Decode the string into "DAY, the DATE" etc
+        return format.format(calendar);
     }
 
     //Gets the current local time in Stockholm
-    //TODO: Change to position
-    private Date getCurrentTime() {
+    //TODO: REMOVE?
+    private Calendar getCurrentTime() {
         TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
         TimeZone.setDefault(timeZone);
-        Calendar calendar = Calendar.getInstance(timeZone, SWEDEN);
-        //TODO: Decode the string into "DAY, the DATE,
-        return calendar.getTime();
+        return Calendar.getInstance(timeZone, SWEDEN);
     }
 
+    //takes a String and the Keywords for that string, returns String with only the keywords
     private String cleanInput(String input, String[] keywords) {
         StringBuilder regexBuilder = new StringBuilder();
         regexBuilder.append("(?i)\\b(");
@@ -470,29 +469,49 @@ public class MainActivity extends AppCompatActivity implements
     //Only accepts time in 24h-format
     //TODO: ALARM-METHOD
     private String createAlarm(String input) {
-        //TODO: GOAL: set,alarm,tomorrow,17:00 - use cleanInput!
-        //TODO: set,alar,every day, 8:00
-        long inputNumbers = findNumbers(input);
-//        cleanInput(input, "");
+        //TODO: GOAL: tomorrow,17:00 - use cleanInput!
+        //TODO: name,every-day,8:00
+        String alarmName = findName(input); //name of the alarm, if it has one
+        long inputNumbers = findNumbers(input); //amount of seconds to alarm
+        int addSeconds = (int) inputNumbers;
+        Calendar calendar = getCurrentTime();
+        System.out.println("Calendar time is " + calendar.getTime().toString());
+        calendar.add(Calendar.SECOND, addSeconds);
+        long secToAlarm = (calendar.getTimeInMillis()) / 1000;
+        int alarmLength = (int)secToAlarm;
 
-        Calendar calendar = Calendar.getInstance();
-        Date today = calendar.getTime();
-        System.out.println("Current Date and Time : " + today.getTime());
-//        calendar.add(Calendar.SECOND, seconds);
-        Date targetDate = calendar.getTime();
-        System.out.println("Target Date and Time : " + targetDate.getTime());
+        System.out.println("ALARMLENGTH IS: " + alarmLength);
+        System.out.println("Alarm is set for " + calendar.getTime().toString());
+        String[] day = decodeDay(input);
+        String[] keywords = {alarmName.trim(), String.valueOf(alarmLength), day[0], day[1]};
 
-        if (input.contains("name")) {
-            System.out.println("ALARM Named: " + input.substring(input.indexOf("name") + 1));
+        //"SHOULD RETURN: AlarmName, AlarmLength, Repeatable > WHEN";
+        //wake up,1301241,every,tuesday
+        String alarmMessage = cleanInput(input, keywords);
+        return alarmMessage + alarmLength;
+    }
+
+    private String[] decodeDay (String input) {
+        String[] days = {
+                "today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday",
+                "saturday", "sunday"
+        };
+        String[] specialCommands = {
+                "next", "every", "every second", "every third", "once a" //can be expanded...
+        };
+        String special = "noSpecial";
+        String day = "noDay";
+        for (String str : days) {
+            if (input.contains(str)) {
+                day = str;
+            }
         }
-
-//        String alarmName = "Wake up";
-//        String alarmLength = "10";
-//        String repeatable = "false";
-//        String message = alarmName + "," + alarmLength + "," + repeatable;
-//        publish(ALARM_TOPIC_CREATE, message);
-//        System.out.println("Publishing alarm for " + alarmName);
-        return "SHOULD RETURN: AlarmName, AlarmLength, Repeatable > WHEN";
+        for (String str : specialCommands) {
+            if (input.contains(str)) {
+                special = str;
+            }
+        }
+        return new String[]{special, day};
     }
 
     //Finds and unpacks the VOSK model
@@ -682,7 +701,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private long findNumbers(String input) {
-        double multiplier = 1; //Amount of seconds the numbers are worth
+        double multiplier = 3600; //Amount of seconds the numbers are worth
         long result = 0;
         long output = 0;
 
@@ -695,12 +714,26 @@ public class MainActivity extends AppCompatActivity implements
                         "hundred", "thousand", "million", "billion", "trillion"
                 );
 
-        if (input.contains("minute")) {
+        String[] days = {
+                "today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday",
+                "saturday", "sunday"
+        };
+
+        if (input.contains("second")) {
+            multiplier = 1;
+        } else if (input.contains("minute")) {
             multiplier = 60;
-        } else if (input.contains("hour")) {
-            multiplier = 3600;
-        } else if (input.contains("day")) {
-            multiplier = 86400;
+        } else if (input.contains("day") || input.contains("days")) {
+            boolean weekdayFound = false;
+            for (String day : days) {
+                if (input.contains(day)) {
+                    weekdayFound = true;
+                    break;
+                }
+            }
+            if (!weekdayFound) {
+                multiplier = 86400;
+            }
         } else if (input.contains("week")) {
             multiplier = 604800;
         } else if (input.contains("month")) {
