@@ -59,8 +59,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String SHOPPING_LIST_READ = "project-jarvis/shopping-list/read";
     private static final String DEVICES_TOPIC = "project-jarvis/devices"; //Used for creating and removing devices
 
-//ALL SUBSCRIPTION TOPICS
+    //ALL SUBSCRIPTION TOPICS
     private static final String DEVICES_LIST_TOPIC = "project-jarvis/devices/list"; //lists all available devices
     private static final String FEEDBACK_TOPIC = "project-jarvis/feedback";
     private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
@@ -91,7 +94,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String[] SUBSCRIPTION_TOPICS = {
             DEVICES_LIST_TOPIC, FEEDBACK_TOPIC, ALARM_TOPIC_CONTROL, TIMER_TOPIC_CONTROL
     };
-    private ArrayList<String> deviceTopics; //Collection for all of our device topics, updated from server
+    //Collection for all of our device topics, updated from server using unpackDevices()
+    private final HashMap<String, String> deviceTopicsMap = new HashMap<>();
 
     //creates the ringtone / alarm
     private boolean ringtoneActive = false;
@@ -244,6 +248,7 @@ public class MainActivity extends AppCompatActivity implements
                 switch (topic) {
                     case DEVICES_LIST_TOPIC:
                         unpackDevices(separatedMessage);
+                        break;
                     case ALARM_TOPIC_CONTROL:
                         System.out.println("ALARM ALARM-Control!");
                         try {
@@ -290,11 +295,15 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    private void unpackDevices(String[] message) {
-
+    private void unpackDevices(String[] separatedMessage) {
+        for (String topic : separatedMessage) {
+            String name = topic.substring(topic.lastIndexOf("/") + 1);
+            name = name.replaceAll("-", " ");
+            deviceTopicsMap.put(name, topic);
+        }
     }
 
-    private void alarmControl (String command) {
+    private void alarmControl(String command) {
         ringtoneActive = command.equals("play");
         if (command.equals("play")) {
             System.out.println("Playing alarm sound");
@@ -341,6 +350,7 @@ public class MainActivity extends AppCompatActivity implements
                 public void onSuccess(IMqttToken asyncActionToken) {
                     System.out.println("Publish successful to topic: " + topic + " message: " + message);
                 }
+
                 @Override
                 public void onFailure(IMqttToken asyncActionToken,
                                       Throwable exception) {
@@ -385,36 +395,49 @@ public class MainActivity extends AppCompatActivity implements
             return; //Ignores the basic "text" input if nothing has been heard
         }
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-        if (input.contains("lamp") && input.contains("on")) {
-            publish(FLOOR_LAMP, "device/TurnOn");
-            feedback("Turning on the lamp");
-        } else if (input.contains("lamp") && ((input.contains("off")) || input.contains("of"))) {
-            publish(FLOOR_LAMP, "device/TurnOff");
-            feedback("Turning off the lamp");
-        } else if (input.contains("set") && input.contains("timer")) {
-            long numbers = findNumbers(input);
-            System.out.println("NUMBERS ARE: " + numbers);
-            String[] keywords = {"set", "timer"};
-            String toSend = cleanInput(input, keywords);
-            //WHAT SHOULD BE SENT IS: set,timer,(n)time
-            System.out.println("TO SEND IS: " + toSend + numbers);
-            publish(TIMER_TOPIC_CREATE, toSend + numbers);
-        } else if (input.contains("set") || input.contains("create") && input.contains("alarm")) {
-            System.out.println("CREATE ALARM");
-            System.out.println("CREATED ALARM: " + createAlarm(input));
-            //TODO: String STRING = createAlarm(input);
+
+        boolean published = false;
+        Set<String> deviceNames = deviceTopicsMap.keySet();
+        for (String deviceName: deviceNames) {
+            if (input.contains(deviceName)) {
+                String topic = deviceTopicsMap.get(deviceName);
+                String message = input;
+                if (input.contains("off") || input.contains("of")) {
+                    message = "device/TurnOff";
+                } else if (input.contains("on")) {
+                    message = "device/TurnOn";
+                }
+                publish(topic, message);
+                published = true;
+            }
+        }
+
+        if (!published) {
+            if (input.contains("set") && input.contains("timer")) {
+                long numbers = findNumbers(input);
+                System.out.println("NUMBERS ARE: " + numbers);
+                String[] keywords = {"set", "timer"};
+                String toSend = cleanInput(input, keywords);
+                //WHAT SHOULD BE SENT IS: set,timer,(n)time
+                System.out.println("TO SEND IS: " + toSend + numbers);
+                publish(TIMER_TOPIC_CREATE, toSend + numbers);
+            } else if (input.contains("set") || input.contains("create") && input.contains("alarm")) {
+                System.out.println("CREATE ALARM");
+                System.out.println("CREATED ALARM: " + createAlarm(input));
+                //TODO: String STRING = createAlarm(input);
 //TODO:            publish(ALARM_TOPIC_CREATE, STRING:(name,every-day,8:00));
-        } else if (input.contains("alarm") && (input.contains("off") || input.contains("of"))) {
-            alarmControl("stop");
-        } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
-            feedback("The time is " + stringTime(getCurrentTime()));
-        } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
-            System.out.println("WEATHER");
-            cityInput.setText(input.substring(input.lastIndexOf(" ") + 1));
-            getWeatherDetails();
-            //feedback(weatherResult.toString());
-        } else {
-            feedback("No valid input, please try again!");
+            } else if (input.contains("alarm") && (input.contains("off") || input.contains("of"))) {
+                alarmControl("stop");
+            } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
+                feedback("The time is " + stringTime(getCurrentTime()));
+            } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
+                System.out.println("WEATHER");
+                cityInput.setText(input.substring(input.lastIndexOf(" ") + 1));
+                getWeatherDetails();
+                //feedback(weatherResult.toString());
+            } else {
+                feedback("No valid input, please try again!");
+            }
         }
     }
 
@@ -431,9 +454,9 @@ public class MainActivity extends AppCompatActivity implements
             match = true;
         }
         if (match) {
-            Pattern namePattern = Pattern.compile(patternString +"(.*)");
-            Matcher nameMatcher = namePattern.matcher( input );
-            if ( nameMatcher.find() ) {
+            Pattern namePattern = Pattern.compile(patternString + "(.*)");
+            Matcher nameMatcher = namePattern.matcher(input);
+            if (nameMatcher.find()) {
                 name = nameMatcher.group(1); // " that is awesome"
                 System.out.println("Named: " + name);
             }
@@ -505,7 +528,7 @@ public class MainActivity extends AppCompatActivity implements
         System.out.println("Calendar time is " + calendar.getTime().toString());
         calendar.add(Calendar.SECOND, addSeconds);
         long secToAlarm = (calendar.getTimeInMillis()) / 1000;
-        int alarmLength = (int)secToAlarm;
+        int alarmLength = (int) secToAlarm;
 
         System.out.println("ALARMLENGTH IS: " + alarmLength);
         System.out.println("Alarm is set for " + calendar.getTime().toString());
@@ -518,7 +541,7 @@ public class MainActivity extends AppCompatActivity implements
         return alarmMessage + alarmLength;
     }
 
-    private String[] decodeDay (String input) {
+    private String[] decodeDay(String input) {
         String[] days = {
                 "today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday",
                 "saturday", "sunday"
@@ -698,7 +721,7 @@ public class MainActivity extends AppCompatActivity implements
                     output += "Current weather in " + cityName
                             + "\n Temp: " + Math.round(temp) + " °C"
                             + "\n Feels Like: " + Math.round(feelsLike) + " °C"
-                            + "\n Sky: " + description.substring(0,1).toUpperCase() + description.substring(1).toLowerCase();
+                            + "\n Sky: " + description.substring(0, 1).toUpperCase() + description.substring(1).toLowerCase();
                     weatherResult.setText(output);
                 } catch (JSONException e) {
                     e.printStackTrace();
