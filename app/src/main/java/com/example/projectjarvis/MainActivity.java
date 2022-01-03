@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = "MainActivity";
 
     //TOPICS
-    private static final String FLOOR_LAMP = "project-jarvis/floorlamp"; //TODO: Remove
+    private static final String FLOOR_LAMP = "project-jarvis/device/floor-lamp"; //TODO: Remove
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
     private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
     private static final String SHOPPING_LIST_CREATE = "project-jarvis/shopping-list/create"; //TODO: ONÖDIG?
@@ -89,8 +89,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
     private static final String TIMER_TOPIC_CONTROL = "project-jarvis/timer/control";
     private static final String[] SUBSCRIPTION_TOPICS = {
-            DEVICES_LIST_TOPIC, FEEDBACK_TOPIC,
-            ALARM_TOPIC_CONTROL, TIMER_TOPIC_CONTROL
+            DEVICES_LIST_TOPIC, FEEDBACK_TOPIC, ALARM_TOPIC_CONTROL, TIMER_TOPIC_CONTROL
     };
     private ArrayList<String> deviceTopics; //Collection for all of our device topics, updated from server
 
@@ -277,6 +276,7 @@ public class MainActivity extends AppCompatActivity implements
                         break;
                 }
                 if (topic.equals(FEEDBACK_TOPIC)) {
+                    feedback(newMessage);
                     System.out.println("FEEDBACK: " + newMessage);
                 }
             }
@@ -332,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements
             subToken.setActionCallback(new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    System.out.println("Publish successful to topic: " + topic);
+                    System.out.println("Publish successful to topic: " + topic + " message: " + message);
                 }
                 @Override
                 public void onFailure(IMqttToken asyncActionToken,
