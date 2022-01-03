@@ -52,7 +52,6 @@ import org.vosk.android.StorageService;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -68,12 +67,12 @@ public class MainActivity extends AppCompatActivity implements
     //9225e610-2149-44b1-aee9-ca6eef3ce0c1
 
     private TextToSpeech textToSpeech;
-    private static final String FLOOR_LAMP = "project-jarvis/floor-lamp";
     private MqttAndroidClient client;
     private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
     private static final String TAG = "MainActivity";
 
     //TOPICS
+    private static final String FLOOR_LAMP = "project-jarvis/floor-lamp";
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
     private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
     private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
@@ -88,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements
     private boolean ringtoneActive = false;
     private static final Locale SWEDEN = new Locale("sv", "SE");
     private final Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-    private Ringtone r;
+    private Ringtone ringtone;
 
     static private final int STATE_START = 0;
     static private final int STATE_READY = 1;
@@ -147,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements
         ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
-        r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+        ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
         //TTS OnInit NOTE: Can't set locale on virtual machine
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
@@ -194,8 +193,7 @@ public class MainActivity extends AppCompatActivity implements
                 System.out.println("Publishing alarm for " + alarmName);
 
             } else {
-                publish(ALARM_TOPIC_CONTROL, "stop");
-                System.out.println("publishing stop");
+                alarmControl("stop");
             }
         });
     }
@@ -231,14 +229,12 @@ public class MainActivity extends AppCompatActivity implements
                     System.out.println("alarmtopic!");
                     try {
                         if (newMessage.contains("play")) {
-                            System.out.println("Playing alarm");
-                            r.play();
-                            ringtoneActive = true;
+                            alarmControl("play");
                             feedback("Alarm: " + separatedMessage[1]);
                         } else if (newMessage.contains("stop")) {
+                            //TODO: Make this doable without the
                             System.out.println("Turning off alarm");
-                            r.stop();
-                            ringtoneActive = false;
+                            alarmControl("stop");
                         }
                     } catch (Exception e) {
                         System.out.println("Alarm error");
@@ -248,14 +244,10 @@ public class MainActivity extends AppCompatActivity implements
                     System.out.println("TIMER TOPIC-Control");
                     try {
                         if (newMessage.contains("play")) {
-                            System.out.println("Playing timer");
-                            r.play();
-                            ringtoneActive = true;
+                            alarmControl("play");
                             feedback("Time's up!");
                         } else if (newMessage.contains("stop")) {
-                            System.out.println("Turning off timer");
-                            r.stop();
-                            ringtoneActive = false;
+                            alarmControl("stop");
                         }
                     } catch (Exception e) {
                         System.out.println("Alarm error");
@@ -273,6 +265,17 @@ public class MainActivity extends AppCompatActivity implements
             public void deliveryComplete(IMqttDeliveryToken token) {
             }
         });
+    }
+
+    private void alarmControl (String command) {
+        ringtoneActive = command.equals("play");
+        if (command.equals("play")) {
+            System.out.println("Playing alarm sound");
+            ringtone.play();
+        } else {
+            System.out.println("Stopping alarm sound");
+            ringtone.stop();
+        }
     }
 
     // ** MQTT Connection **
@@ -358,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements
         if (input.contains("lamp") && input.contains("on")) {
             publish(FLOOR_LAMP, "device/TurnOn");
             feedback("Turning on the lamp");
-        } else if (input.contains("lamp") && (input.contains("off")) || input.contains("of")) {
+        } else if (input.contains("lamp") && ((input.contains("off")) || input.contains("of"))) {
             publish(FLOOR_LAMP, "device/TurnOff");
             feedback("Turning off the lamp");
         } else if (input.contains("set") && input.contains("timer")) {
@@ -372,10 +375,12 @@ public class MainActivity extends AppCompatActivity implements
             System.out.println("CREATE ALARM");
             //TODO: FIX
 //            int secondsToAlarm = createAlarm();
+        } else if (input.contains("alarm") && (input.contains("off") || input.contains("of"))) {
+            alarmControl("stop");
         } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
             feedback("The time is " + stringTime(getCurrentTime()));
         } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
-
+            System.out.println("WEATHER");
         } else {
             feedback("No valid input, please try again!");
         }
