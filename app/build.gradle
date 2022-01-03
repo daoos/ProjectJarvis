@@ -33,11 +33,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
-    //implementation fileTree(dir: '\\libs', include: ['*.aar', '*.jar'], exclude: []) //the SSH Library
-    //implementation group: 'com.alphacephei', name: 'vosk-android', version: '0.3.32' //Vosk voice recog
-    //implementation group: 'net.java.dev.jna', name: 'jna', version: '5.9.0'
     implementation 'net.java.dev.jna:jna:5.8.0@aar'
-    //implementation group: 'net.java.dev.jna', name: 'jna', version: '5.7.0'
     implementation group: 'com.alphacephei', name: 'vosk-android', version: '0.3.32'
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.android.volley:volley:1.2.0'

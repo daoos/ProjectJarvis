@@ -13,6 +13,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.text.PrecomputedText;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -104,10 +105,12 @@ public class MainActivity extends AppCompatActivity implements
     private TextView voiceInput;
 
 
-    EditText cityInput, countryInput;
+    EditText cityInput;
     TextView weatherResult;
     private final String url = "https://api.openweathermap.org/data/2.5/weather";
-    private final String appid = "e53301e27efa0b66d05045d91b2742d3";
+    private final String appid = "f867fac52bdc5a485eb681e29989f284";
+    //Old: e53301e27efa0b66d05045d91b2742d3
+    //New: f867fac52bdc5a485eb681e29989f284
 
 
     @Override
@@ -115,9 +118,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        cityInput = findViewById(R.id.etCity);
-        countryInput = findViewById(R.id.etCountry);
-        weatherResult = findViewById(R.id.tvResult);
+        cityInput = findViewById(R.id.cityInput);
+        weatherResult = findViewById(R.id.weatherResult);
 
         //------Vosk
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
@@ -161,11 +163,13 @@ public class MainActivity extends AppCompatActivity implements
 
 
         //MQTT Connect
+
         try {
             mqttConnect();
         } catch (MqttException e) {
             e.printStackTrace();
         }
+
 
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
@@ -386,6 +390,9 @@ public class MainActivity extends AppCompatActivity implements
             feedback("The time is " + stringTime(getCurrentTime()));
         } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
             System.out.println("WEATHER");
+            cityInput.setText(input.substring(input.lastIndexOf(" ") + 1));
+            getWeatherDetails();
+            //feedback(weatherResult.toString());
         } else {
             feedback("No valid input, please try again!");
         }
@@ -651,53 +658,41 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    public void getWeatherDetails(View view) {
-        String tempUrl = "";
+    public void getWeatherDetails() {
         String city = cityInput.getText().toString().trim();
-        String country = countryInput.getText().toString().trim();
+        String tempUrl = url + "?q=" + city + "&appid=" + appid;
 
-        if (city.equals("")) {
-            weatherResult.setText("City field can not be empty!");
-        } else {
-            if (!country.equals("")) {
-                tempUrl = url + "?q=" + city + "," + country + "&appid=" + appid;
-            } else {
-                tempUrl = url + "?q=" + city + "&appid=" + appid;
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, tempUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                String output = "";
+                try {
+                    JSONObject jsonResponse = new JSONObject(response);
+                    JSONArray jsonArray = jsonResponse.getJSONArray("weather");
+                    JSONObject jsonObjectWeather = jsonArray.getJSONObject(0);
+                    String description = jsonObjectWeather.getString("description");
+                    JSONObject jsonObjectMain = jsonResponse.getJSONObject("main");
+                    double temp = jsonObjectMain.getDouble("temp") - 273.15;
+                    double feelsLike = jsonObjectMain.getDouble("feels_like") - 273.15;
+                    String cityName = jsonResponse.getString("name");
+                    output += "Current weather in " + cityName
+                            + "\n Temp: " + Math.round(temp) + " °C"
+                            + "\n Feels Like: " + Math.round(feelsLike) + " °C"
+                            + "\n Sky: " + description.substring(0,1).toUpperCase() + description.substring(1).toLowerCase();
+                    weatherResult.setText(output);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
-            StringRequest stringRequest = new StringRequest(Request.Method.POST, tempUrl, new Response.Listener<String>() {
-                @Override
-                public void onResponse(String response) {
-                    String output = "";
-                    try {
-                        JSONObject jsonResponse = new JSONObject(response);
-                        JSONArray jsonArray = jsonResponse.getJSONArray("weather");
-                        JSONObject jsonObjectWeather = jsonArray.getJSONObject(0);
-                        String description = jsonObjectWeather.getString("description");
-                        JSONObject jsonObjectMain = jsonResponse.getJSONObject("main");
-                        double temp = jsonObjectMain.getDouble("temp") - 273.15;
-                        double feelsLike = jsonObjectMain.getDouble("feels_like") - 273.15;
-                        JSONObject jsonObjectSys = jsonResponse.getJSONObject("sys");
-                        String countryName = jsonObjectSys.getString("country");
-                        String cityName = jsonResponse.getString("name");
-                        output += "Current weather of " + cityName + " (" + countryName + ")"
-                                + "\n Temp: " + Math.round(temp) + " °C"
-                                + "\n Feels Like: " + Math.round(feelsLike) + " °C"
-                                + "\n Description: " + description;
-                        weatherResult.setText(output);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, new Response.ErrorListener() {
+        }, new Response.ErrorListener() {
 
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Toast.makeText(getApplicationContext(), error.toString().trim(), Toast.LENGTH_SHORT).show();
-                }
-            });
-            RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
-            requestQueue.add(stringRequest);
-        }
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), error.toString().trim(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(stringRequest);
     }
 
     private long findNumbers(String input) {
