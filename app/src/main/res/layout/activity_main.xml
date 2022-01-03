@@ -45,7 +45,7 @@
 
     <TextView
         android:id="@+id/voiceInput"
-        android:layout_width="250dp"
+        android:layout_width="350dp"
         android:layout_height="140dp"
         android:layout_marginTop="11dp"
         android:layout_marginBottom="19dp"
@@ -63,16 +63,12 @@
         android:id="@+id/devicesBtn"
         android:layout_width="61dp"
         android:layout_height="57dp"
-        android:layout_marginStart="3dp"
-        android:layout_marginTop="68dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginTop="181dp"
         android:background="#00232323"
         android:scaleType="centerCrop"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/voiceInput"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/voiceInput"
-        app:layout_constraintTop_toBottomOf="@+id/recognize_mic"
+        app:layout_constraintTop_toBottomOf="@+id/devices"
         app:srcCompat="@drawable/ic_devices"
         tools:srcCompat="@drawable/ic_devices" />
 
@@ -137,13 +133,14 @@
 
     <EditText
         android:id="@+id/cityInput"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:ems="10"
         android:hint="Enter city"
         android:inputType="textPersonName"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="52dp" />
+        app:layout_constraintBottom_toTopOf="@+id/weatherResult"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button"

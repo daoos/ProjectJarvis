@@ -67,8 +67,6 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity implements
         RecognitionListener {
 
-    //9225e610-2149-44b1-aee9-ca6eef3ce0c1
-
     private TextToSpeech textToSpeech;
     private MqttAndroidClient client;
     private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
@@ -152,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         Button devices = findViewById(R.id.devices);
-        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName, id, command"));
+        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName,id,command"));
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
