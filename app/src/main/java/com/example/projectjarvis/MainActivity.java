@@ -355,31 +355,31 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    public void decodeInput(String result) {
-        if (result.equals("text")) {
+    public void decodeInput(String input) {
+        if (input.equals("text")) {
             return; //Ignores the basic "text" input if nothing has been heard
         }
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-        if (result.contains("lamp") && result.contains("on")) {
+        if (input.contains("lamp") && input.contains("on")) {
             publish(FLOOR_LAMP, "device/TurnOn");
             feedback("Turning on the lamp");
-        } else if (result.contains("lamp") && (result.contains("off")) || result.contains("of")) {
+        } else if (input.contains("lamp") && (input.contains("off")) || input.contains("of")) {
             publish(FLOOR_LAMP, "device/TurnOff");
             feedback("Turning off the lamp");
-        } else if (result.contains("set") && result.contains("timer")) {
-            long numbers = checkNumbers(result);
+        } else if (input.contains("set") && input.contains("timer")) {
+            long numbers = checkNumbers(input);
             System.out.println("NUMBERS ARE: " + numbers);
-            String toSend = cleanInput(result, "Set timer");
+            String toSend = cleanInput(input, "Set timer");
             //WHAT SHOULD BE SENT IS: set,timer,(n)time
             System.out.println("TO SEND IS: " + toSend + numbers);
             publish(TIMER_TOPIC_CREATE, toSend + numbers);
-        } else if (result.contains("set") || result.contains("create") && result.contains("alarm")) {
+        } else if (input.contains("set") || input.contains("create") && input.contains("alarm")) {
             System.out.println("CREATE ALARM");
             //TODO: FIX
 //            int secondsToAlarm = createAlarm();
-        } else if (result.contains("what") && result.contains("time") && ((result.contains("is it") || result.contains("is the")) || result.contains("'s the"))) {
-            feedback("The time is " + getCurrentTime());
-        } else if (result.contains("what") && (result.contains("is the") || result.contains("'s the")) && result.contains("weather")) {
+        } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
+            feedback("The time is " + stringTime(getCurrentTime()));
+        } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
 
         } else {
             feedback("No valid input, please try again!");
@@ -392,18 +392,18 @@ public class MainActivity extends AppCompatActivity implements
         return format.format(date);
     }
 
-    private String getCurrentTime() {
-        try {
-            TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
-            TimeZone.setDefault(timeZone);
-            Calendar calendar = Calendar.getInstance(timeZone, SWEDEN);
-            //TODO: Decode the string into "DAY, the DATE,
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
-            return df.format(calendar.getTime());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "ERROR, getCurrentTime(): " + e;
-        }
+    //Returns a String for the time instead of a Date object
+    private String stringTime(Date date) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
+        return df.format(date);
+    }
+
+    private Date getCurrentTime() {
+        TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
+        TimeZone.setDefault(timeZone);
+        Calendar calendar = Calendar.getInstance(timeZone, SWEDEN);
+        //TODO: Decode the string into "DAY, the DATE,
+        return calendar.getTime();
     }
 
     private String cleanInput(String input, String keywords) {
@@ -623,99 +623,97 @@ public class MainActivity extends AppCompatActivity implements
                         "hundred", "thousand", "million", "billion", "trillion"
                 );
 
-        if (input != null && input.length() > 0) {
-            String[] words = input.trim().split("\\s+");
+        if (input.contains("minute")) {
+            multiplier = 60;
+        } else if (input.contains("hour")) {
+            multiplier = 3600;
+        } else if (input.contains("day")) {
+            multiplier = 86400;
+        } else if (input.contains("week")) {
+            multiplier = 604800;
+        } else if (input.contains("month")) {
+            multiplier = 2629743.83;
+        } else if (input.contains("year")) {
+            multiplier = 31556926;
+        }
 
-            for (String str : words) {
-                if (str.contains("minute")) {
-                    multiplier = 60;
-                } else if (str.contains("hour")) {
-                    multiplier = 3600;
-                } else if (str.contains("day")) {
-                    multiplier = 86400;
-                } else if (str.contains("week")) {
-                    multiplier = 604800;
-                } else if (str.contains("month")) {
-                    multiplier = 2629743.83;
-                } else if (str.contains("year")) {
-                    multiplier = 31556926;
-                }
-                if (allowedStrings.contains(str)) {
-                    if (str.equalsIgnoreCase("zero")) {
-                        result += 0;
-                    } else if (str.equalsIgnoreCase("one")) {
-                        result += 1;
-                    } else if (str.equalsIgnoreCase("two")) {
-                        result += 2;
-                    } else if (str.equalsIgnoreCase("three")) {
-                        result += 3;
-                    } else if (str.equalsIgnoreCase("four")) {
-                        result += 4;
-                    } else if (str.equalsIgnoreCase("five")) {
-                        result += 5;
-                    } else if (str.equalsIgnoreCase("six")) {
-                        result += 6;
-                    } else if (str.equalsIgnoreCase("seven")) {
-                        result += 7;
-                    } else if (str.equalsIgnoreCase("eight")) {
-                        result += 8;
-                    } else if (str.equalsIgnoreCase("nine")) {
-                        result += 9;
-                    } else if (str.equalsIgnoreCase("ten")) {
-                        result += 10;
-                    } else if (str.equalsIgnoreCase("eleven")) {
-                        result += 11;
-                    } else if (str.equalsIgnoreCase("twelve")) {
-                        result += 12;
-                    } else if (str.equalsIgnoreCase("thirteen")) {
-                        result += 13;
-                    } else if (str.equalsIgnoreCase("fourteen")) {
-                        result += 14;
-                    } else if (str.equalsIgnoreCase("fifteen")) {
-                        result += 15;
-                    } else if (str.equalsIgnoreCase("sixteen")) {
-                        result += 16;
-                    } else if (str.equalsIgnoreCase("seventeen")) {
-                        result += 17;
-                    } else if (str.equalsIgnoreCase("eighteen")) {
-                        result += 18;
-                    } else if (str.equalsIgnoreCase("nineteen")) {
-                        result += 19;
-                    } else if (str.equalsIgnoreCase("twenty")) {
-                        result += 20;
-                    } else if (str.equalsIgnoreCase("thirty")) {
-                        result += 30;
-                    } else if (str.equalsIgnoreCase("forty")) {
-                        result += 40;
-                    } else if (str.equalsIgnoreCase("fifty")) {
-                        result += 50;
-                    } else if (str.equalsIgnoreCase("sixty")) {
-                        result += 60;
-                    } else if (str.equalsIgnoreCase("seventy")) {
-                        result += 70;
-                    } else if (str.equalsIgnoreCase("eighty")) {
-                        result += 80;
-                    } else if (str.equalsIgnoreCase("ninety")) {
-                        result += 90;
-                    } else if (str.equalsIgnoreCase("hundred")) {
-                        result *= 100;
-                    } else if (str.equalsIgnoreCase("thousand")) {
-                        result *= 1000;
-                        output += result;
-                        result = 0;
-                    } else if (str.equalsIgnoreCase("million")) {
-                        result *= 1000000;
-                        output += result;
-                        result = 0;
-                    } else if (str.equalsIgnoreCase("billion")) {
-                        result *= 1000000000;
-                        output += result;
-                        result = 0;
-                    } else if (str.equalsIgnoreCase("trillion")) {
-                        result *= 1000000000000L;
-                        output += result;
-                        result = 0;
-                    }
+        String[] words = input.trim().split("\\s+");
+        for (String str : words) {
+            if (allowedStrings.contains(str)) {
+                if (str.equalsIgnoreCase("zero")) {
+                    result += 0;
+                } else if (str.equalsIgnoreCase("one")) {
+                    result += 1;
+                } else if (str.equalsIgnoreCase("two")) {
+                    result += 2;
+                } else if (str.equalsIgnoreCase("three")) {
+                    result += 3;
+                } else if (str.equalsIgnoreCase("four")) {
+                    result += 4;
+                } else if (str.equalsIgnoreCase("five")) {
+                    result += 5;
+                } else if (str.equalsIgnoreCase("six")) {
+                    result += 6;
+                } else if (str.equalsIgnoreCase("seven")) {
+                    result += 7;
+                } else if (str.equalsIgnoreCase("eight")) {
+                    result += 8;
+                } else if (str.equalsIgnoreCase("nine")) {
+                    result += 9;
+                } else if (str.equalsIgnoreCase("ten")) {
+                    result += 10;
+                } else if (str.equalsIgnoreCase("eleven")) {
+                    result += 11;
+                } else if (str.equalsIgnoreCase("twelve")) {
+                    result += 12;
+                } else if (str.equalsIgnoreCase("thirteen")) {
+                    result += 13;
+                } else if (str.equalsIgnoreCase("fourteen")) {
+                    result += 14;
+                } else if (str.equalsIgnoreCase("fifteen")) {
+                    result += 15;
+                } else if (str.equalsIgnoreCase("sixteen")) {
+                    result += 16;
+                } else if (str.equalsIgnoreCase("seventeen")) {
+                    result += 17;
+                } else if (str.equalsIgnoreCase("eighteen")) {
+                    result += 18;
+                } else if (str.equalsIgnoreCase("nineteen")) {
+                    result += 19;
+                } else if (str.equalsIgnoreCase("twenty")) {
+                    result += 20;
+                } else if (str.equalsIgnoreCase("thirty")) {
+                    result += 30;
+                } else if (str.equalsIgnoreCase("forty")) {
+                    result += 40;
+                } else if (str.equalsIgnoreCase("fifty")) {
+                    result += 50;
+                } else if (str.equalsIgnoreCase("sixty")) {
+                    result += 60;
+                } else if (str.equalsIgnoreCase("seventy")) {
+                    result += 70;
+                } else if (str.equalsIgnoreCase("eighty")) {
+                    result += 80;
+                } else if (str.equalsIgnoreCase("ninety")) {
+                    result += 90;
+                } else if (str.equalsIgnoreCase("hundred")) {
+                    result *= 100;
+                } else if (str.equalsIgnoreCase("thousand")) {
+                    result *= 1000;
+                    output += result;
+                    result = 0;
+                } else if (str.equalsIgnoreCase("million")) {
+                    result *= 1000000;
+                    output += result;
+                    result = 0;
+                } else if (str.equalsIgnoreCase("billion")) {
+                    result *= 1000000000;
+                    output += result;
+                    result = 0;
+                } else if (str.equalsIgnoreCase("trillion")) {
+                    result *= 1000000000000L;
+                    output += result;
+                    result = 0;
                 }
             }
             output += result * multiplier;
