@@ -241,6 +241,8 @@ public class MainActivity extends AppCompatActivity implements
                 String[] separatedMessage = newMessage.split(",");
 
                 switch (topic) {
+                    case DEVICES_LIST_TOPIC:
+                        unpackDevices(separatedMessage);
                     case ALARM_TOPIC_CONTROL:
                         System.out.println("ALARM ALARM-Control!");
                         try {
@@ -275,6 +277,7 @@ public class MainActivity extends AppCompatActivity implements
                         break;
                 }
                 if (topic.equals(FEEDBACK_TOPIC)) {
+                    //TODO: Control so only feedbacks relevant stuff
                     feedback(newMessage);
                     System.out.println("FEEDBACK: " + newMessage);
                 }
@@ -284,6 +287,10 @@ public class MainActivity extends AppCompatActivity implements
             public void deliveryComplete(IMqttDeliveryToken token) {
             }
         });
+    }
+
+    private void unpackDevices(String[] message) {
+
     }
 
     private void alarmControl (String command) {
