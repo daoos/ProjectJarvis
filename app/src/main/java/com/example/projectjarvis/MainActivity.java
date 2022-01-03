@@ -7,8 +7,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.GpsStatus;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -60,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements
     private MqttAndroidClient client;
     private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
     private static final String TAG = "MainActivity";
+
+    //TOPICS
+
 
     //creates the ringtone / alarm
     private boolean ringtoneActive = false;
@@ -368,9 +375,12 @@ public class MainActivity extends AppCompatActivity implements
             publish(TIMER_TOPIC_CREATE, toSend + numbers);
         } else if (result.contains("set") || result.contains("create") && result.contains("alarm")) {
             System.out.println("CREATE ALARM");
+            //TODO: FIX
 //            int secondsToAlarm = createAlarm();
         } else if (result.contains("what") && result.contains("time") && ((result.contains("is it") || result.contains("is the")) || result.contains("'s the"))) {
             feedback("The time is " + getCurrentTime());
+        } else if (result.contains("what") && (result.contains("is the") || result.contains("'s the")) && result.contains("weather")) {
+
         } else {
             feedback("No valid input, please try again!");
         }
@@ -387,6 +397,7 @@ public class MainActivity extends AppCompatActivity implements
             TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
             TimeZone.setDefault(timeZone);
             Calendar calendar = Calendar.getInstance(timeZone, SWEDEN);
+            //TODO: Decode the string into "DAY, the DATE,
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
             return df.format(calendar.getTime());
         } catch (Exception e) {
