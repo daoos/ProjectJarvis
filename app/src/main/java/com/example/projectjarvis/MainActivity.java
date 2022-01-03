@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String SHOPPING_LIST_CONTROL = "project-jarvis/shopping-list/control";
     private static final String SHOPPING_LIST_READ = "project-jarvis/shopping-list/read";
     private static final String FEEDBACK_TOPIC = "project-jarvis/feedback";
+    private static final String DEVICES_TOPIC = "project-jarvis/devices";
     private static final String[] SUBSCRIPTION_TOPICS = {FEEDBACK_TOPIC, ALARM_TOPIC_CONTROL, TIMER_TOPIC_CONTROL};
 
     //creates the ringtone / alarm
@@ -149,6 +150,9 @@ public class MainActivity extends AppCompatActivity implements
 
         //ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
+
+        Button devices = findViewById(R.id.devices);
+        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName, command"));
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
