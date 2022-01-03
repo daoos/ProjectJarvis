@@ -368,16 +368,21 @@ public class MainActivity extends AppCompatActivity implements
             publish(FLOOR_LAMP, "device/TurnOff");
             feedback("Turning off the lamp");
         } else if (input.contains("set") && input.contains("timer")) {
-            long numbers = checkNumbers(input);
+            long numbers = findNumbers(input);
             System.out.println("NUMBERS ARE: " + numbers);
-            String toSend = cleanInput(input, "Set timer");
+            String[] keywords = {"set", "timer"};
+            String toSend = cleanInput(input, keywords);
             //WHAT SHOULD BE SENT IS: set,timer,(n)time
             System.out.println("TO SEND IS: " + toSend + numbers);
             publish(TIMER_TOPIC_CREATE, toSend + numbers);
         } else if (input.contains("set") || input.contains("create") && input.contains("alarm")) {
             System.out.println("CREATE ALARM");
+            String name = findName(input);
+            long numbers = findNumbers(input);
+            System.out.println("Alarm: " + name + " goes off in " + numbers + " seconds");
+//            String alarm = createAlarm(input);
             //TODO: FIX
-//            int secondsToAlarm = createAlarm();
+//TODO:            publish(ALARM_TOPIC_CREATE, alarm);
         } else if (input.contains("alarm") && (input.contains("off") || input.contains("of"))) {
             alarmControl("stop");
         } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
@@ -389,7 +394,29 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    //TODO: This is what'll be read aloud
+    private String findName(String input) {
+        String name = "NONE";
+        String patternString = "";
+        boolean match = false;
+        if (input.contains("named")) {
+            patternString = "named";
+            match = true;
+        } else if (input.contains("name")) {
+            patternString = "name";
+            match = true;
+        }
+        if (match) {
+            Pattern namePattern = Pattern.compile(patternString +"(.*)");
+            Matcher nameMatcher = namePattern.matcher( input );
+            if ( nameMatcher.find() ) {
+                name = nameMatcher.group(1); // " that is awesome"
+                System.out.println("Named: " + name);
+            }
+        }
+        return name;
+    }
+
+    //TODO: This is what'll be read aloud when asking for the time
     private String readTime(Date date) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
         return format.format(date);
@@ -401,6 +428,8 @@ public class MainActivity extends AppCompatActivity implements
         return df.format(date);
     }
 
+    //Gets the current local time in Stockholm
+    //TODO: Change to position
     private Date getCurrentTime() {
         TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
         TimeZone.setDefault(timeZone);
@@ -409,20 +438,19 @@ public class MainActivity extends AppCompatActivity implements
         return calendar.getTime();
     }
 
-    private String cleanInput(String input, String keywords) {
+    private String cleanInput(String input, String[] keywords) {
         StringBuilder regexBuilder = new StringBuilder();
         regexBuilder.append("(?i)\\b(");
-        String[] keyWordList = keywords.split(" ");
-        for (int i = 0; i < keyWordList.length; i++) {
+        for (int i = 0; i < keywords.length; i++) {
             if (i == 0) {
-                regexBuilder.append(keyWordList[i]);
+                regexBuilder.append(keywords[i]);
             } else {
                 regexBuilder.append("|");
-                regexBuilder.append(keyWordList[i]);
+                regexBuilder.append(keywords[i]);
             }
         }
         regexBuilder.append(")\\b");
-        System.out.println(regexBuilder.toString());
+        System.out.println("Keywords in Regex are: " + regexBuilder.toString());
         Pattern pattern = Pattern.compile(regexBuilder.toString());
         Matcher matcher = pattern.matcher(input);
         StringBuilder output = new StringBuilder();
@@ -439,15 +467,24 @@ public class MainActivity extends AppCompatActivity implements
         toast.show();
     }
 
+    //Only accepts time in 24h-format
     //TODO: ALARM-METHOD
-    private int createAlarm(String targetTime) {
+    private String createAlarm(String input) {
+        //TODO: GOAL: set,alarm,tomorrow,17:00 - use cleanInput!
+        //TODO: set,alar,every day, 8:00
+        long inputNumbers = findNumbers(input);
+//        cleanInput(input, "");
+
         Calendar calendar = Calendar.getInstance();
         Date today = calendar.getTime();
         System.out.println("Current Date and Time : " + today.getTime());
 //        calendar.add(Calendar.SECOND, seconds);
         Date targetDate = calendar.getTime();
         System.out.println("Target Date and Time : " + targetDate.getTime());
-        //TODO: GOAL: set,alarm,tomorrow,17:00 - use cleanInput!
+
+        if (input.contains("name")) {
+            System.out.println("ALARM Named: " + input.substring(input.indexOf("name") + 1));
+        }
 
 //        String alarmName = "Wake up";
 //        String alarmLength = "10";
@@ -455,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements
 //        String message = alarmName + "," + alarmLength + "," + repeatable;
 //        publish(ALARM_TOPIC_CREATE, message);
 //        System.out.println("Publishing alarm for " + alarmName);
-        return 0;
+        return "SHOULD RETURN: AlarmName, AlarmLength, Repeatable > WHEN";
     }
 
     //Finds and unpacks the VOSK model
@@ -644,7 +681,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    private long checkNumbers(String input) {
+    private long findNumbers(String input) {
         double multiplier = 1; //Amount of seconds the numbers are worth
         long result = 0;
         long output = 0;
@@ -751,9 +788,9 @@ public class MainActivity extends AppCompatActivity implements
                     result = 0;
                 }
             }
-            output += result * multiplier;
-            System.out.println("Number result: " + output);
         }
+        output += result * multiplier;
+        System.out.println("Number result: " + output);
         return output;
     }
 }
