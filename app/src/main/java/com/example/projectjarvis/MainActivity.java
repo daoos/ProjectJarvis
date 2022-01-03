@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements
 
     EditText cityInput;
     TextView weatherResult;
+    //String weatherResult;
     private final String url = "https://api.openweathermap.org/data/2.5/weather";
     private final String appid = "f867fac52bdc5a485eb681e29989f284";
     //Old: e53301e27efa0b66d05045d91b2742d3
@@ -135,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements
         setUiState(STATE_START);
 
         findViewById(R.id.recognize_mic).setOnClickListener(view -> recognizeMicrophone());
-        //((ToggleButton) findViewById(R.id.pause)).setOnCheckedChangeListener((view, isChecked) -> pause(isChecked));
 
         LibVosk.setLogLevel(LogLevel.INFO);
 
@@ -154,8 +154,7 @@ public class MainActivity extends AppCompatActivity implements
         Button turnOffBtn = findViewById(R.id.turnOffBtn);
         turnOffBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOff"));
 
-        //ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
-        ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
+        //ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         Button devices = findViewById(R.id.devices);
         devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName,id,command"));
@@ -183,11 +182,11 @@ public class MainActivity extends AppCompatActivity implements
         }
 
 
-        devicesBtn.setOnClickListener(v -> {
+        /*devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
             startActivity(intent);
             System.out.println("Opening view devices!");
-        });
+        });*/
 
         //TODO: Remove alarm button, change to voice recog
         //TODO: Decode voice input and send a name and n seconds to ALARM_TOPIC!
@@ -404,8 +403,8 @@ public class MainActivity extends AppCompatActivity implements
         } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
             System.out.println("WEATHER");
             cityInput.setText(input.substring(input.lastIndexOf(" ") + 1));
+            //feedback(getWeatherDetails(input.substring(input.lastIndexOf(" ") + 1)));
             getWeatherDetails();
-            //feedback(weatherResult.toString());
         } else {
             feedback("No valid input, please try again!");
         }
