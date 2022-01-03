@@ -132,8 +132,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        cityInput = findViewById(R.id.cityInput);
-        weatherResult = findViewById(R.id.weatherResult);
+        //cityInput = findViewById(R.id.cityInput);
+        //weatherResult = findViewById(R.id.weatherResult);
 
         //------Vosk
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
