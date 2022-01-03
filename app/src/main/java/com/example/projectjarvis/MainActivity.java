@@ -225,36 +225,39 @@ public class MainActivity extends AppCompatActivity implements
                 System.out.println("Incoming message: " + topic + " " + newMessage);
                 String[] separatedMessage = newMessage.split(",");
 
-                if (topic.equals(ALARM_TOPIC_CONTROL)) {
-                    System.out.println("alarmtopic!");
-                    try {
-                        if (newMessage.contains("play")) {
-                            alarmControl("play");
-                            feedback("Alarm: " + separatedMessage[1]);
-                        } else if (newMessage.contains("stop")) {
-                            //TODO: Make this doable without the
-                            System.out.println("Turning off alarm");
-                            alarmControl("stop");
+                switch (topic) {
+                    case ALARM_TOPIC_CONTROL:
+                        System.out.println("ALARM ALARM-Control!");
+                        try {
+                            if (newMessage.contains("play")) {
+                                alarmControl("play");
+                                feedback("Alarm: " + separatedMessage[1]);
+                            } else if (newMessage.contains("stop")) {
+                                System.out.println("Turning off alarm");
+                                alarmControl("stop");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Alarm error");
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        System.out.println("Alarm error");
-                        e.printStackTrace();
-                    }
-                } else if (topic.equals(TIMER_TOPIC_CONTROL)) {
-                    System.out.println("TIMER TOPIC-Control");
-                    try {
-                        if (newMessage.contains("play")) {
-                            alarmControl("play");
-                            feedback("Time's up!");
-                        } else if (newMessage.contains("stop")) {
-                            alarmControl("stop");
+                        break;
+                    case TIMER_TOPIC_CONTROL:
+                        System.out.println("TIMER TOPIC-Control");
+                        try {
+                            if (newMessage.contains("play")) {
+                                alarmControl("play");
+                                feedback("Time's up!");
+                            } else if (newMessage.contains("stop")) {
+                                alarmControl("stop");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Alarm error");
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        System.out.println("Alarm error");
-                        e.printStackTrace();
-                    }
-                } else if (topic.equals(SHOPPING_LIST_READ)) {
-                    feedback(newMessage);
+                        break;
+                    case SHOPPING_LIST_READ:
+                        feedback(newMessage);
+                        break;
                 }
                 if (topic.equals(FEEDBACK_TOPIC)) {
                     System.out.println("FEEDBACK: " + newMessage);
@@ -455,6 +458,7 @@ public class MainActivity extends AppCompatActivity implements
         return 0;
     }
 
+    //Finds and unpacks the VOSK model
     private void initModel() {
         StorageService.unpack(this, "model-en-us", "model",
                 (model) -> {
@@ -494,6 +498,7 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    //Handles the word input and sends it to decodeInput()
     @Override
     public void onResult(String hypothesis) {
         voiceInput.append(hypothesis + "\n");
@@ -502,8 +507,8 @@ public class MainActivity extends AppCompatActivity implements
         decodeInput(word);
     }
 
+    //Removes "text" from the String and the JSON-esque styling
     private static String filter(String input) {
-        //Remove "text" from the String and the JSON-esque styling
         String cleanStr = input.replaceAll("[^A-Za-z0-9' ]", "").replaceAll(" +", " ");
         String[] words = cleanStr.trim().split(" ", 2);
         if (words.length > 0) {
