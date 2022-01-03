@@ -1,30 +1,33 @@
 package com.example.projectjarvis;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.GpsStatus;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -34,6 +37,9 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.vosk.LibVosk;
 import org.vosk.LogLevel;
 import org.vosk.Model;
@@ -44,20 +50,11 @@ import org.vosk.android.SpeechStreamService;
 import org.vosk.android.StorageService;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements
         RecognitionListener {
+
+    //9225e610-2149-44b1-aee9-ca6eef3ce0c1
 
     private TextToSpeech textToSpeech;
     private static final String FLOOR_LAMP = "project-jarvis/floor-lamp";
@@ -65,16 +62,10 @@ public class MainActivity extends AppCompatActivity implements
     private static final String SERVER_URI = "tcp://test.mosquitto.org:1883";
     private static final String TAG = "MainActivity";
 
-    //TOPICS
-
-
     //creates the ringtone / alarm
     private boolean ringtoneActive = false;
-    private static final Locale SWEDEN = new Locale("sv", "SE");
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
     private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
-    private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
-    private static final String TIMER_TOPIC_CONTROL = "project-jarvis/timer/control";
     private static final String[] alarmTopics = {ALARM_TOPIC_CONTROL, ALARM_TOPIC_CREATE};
     private static final String SHOPPING_LIST_CREATE = "project-jarvis/shopping-list/create"; //TODO: ONÖDIG?
     private static final String SHOPPING_LIST_CONTROL = "project-jarvis/shopping-list/control";
@@ -96,10 +87,21 @@ public class MainActivity extends AppCompatActivity implements
     private SpeechStreamService speechStreamService;
     private TextView voiceInput;
 
+
+    EditText cityInput, countryInput;
+    TextView weatherResult;
+    private final String url = "https://api.openweathermap.org/data/2.5/weather";
+    private final String appid = "e53301e27efa0b66d05045d91b2742d3";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        cityInput = findViewById(R.id.etCity);
+        countryInput = findViewById(R.id.etCountry);
+        weatherResult = findViewById(R.id.tvResult);
 
         //------Vosk
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
@@ -130,34 +132,26 @@ public class MainActivity extends AppCompatActivity implements
 
         r = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
-        //TTS OnInit NOTE: Can't set locale on virtual machine
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
-            if (status != TextToSpeech.ERROR) {
-                textToSpeech.setLanguage(Locale.US);
-                System.out.println("YES INIT");
-            } else {
-                Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
-                System.out.println("NO INIT. Probably running on emulator");
-            }
-        });
-
+            //textToSpeech.setLanguage(Locale.US) TODO: Can't set locale on virtual machine
+        }
+        );
 
         //MQTT Connect
+
         try {
-            mqttConnect(FLOOR_LAMP);
+            mqttConnect(FLOOR_LAMP); //TODO variabel
         } catch (MqttException e) {
             e.printStackTrace();
         }
 
+
         devicesBtn.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
             startActivity(intent);
-            System.out.println("Opening view devices!");
-        });
 
-//        voiceBtn.setOnClickListener(v -> {
-//            getSpeechInput(v.getRootView()); //activates voice recog when clicking
-//        });
+            System.out.println("Opening devices!");
+        });
 
         //TODO: Remove alarm button, change to voice recog
         //TODO: Decode voice input and send a name and n seconds to ALARM_TOPIC!
@@ -185,22 +179,6 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    //TODO: Vad är det här för? Gamla voice recog?
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        switch (requestCode) {
-//            case 10:
-//                if (resultCode == RESULT_OK && data != null) {
-//                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-//                    voiceInput.setText(result.get(0));
-////                    decodeInput(result); CURRENTLY UNUSED
-//                }
-//                break;
-//        }
-//    }
-
     // Old LINK
     public void mqttConnect(String topic) throws MqttException {
         String feedbackTopic = "project-jarvis/feedback";
@@ -218,7 +196,6 @@ public class MainActivity extends AppCompatActivity implements
                 for (String topic : alarmTopics) {
                     subscribe(topic);
                 }
-                subscribe(TIMER_TOPIC_CONTROL);
             }
 
             @Override
@@ -242,23 +219,6 @@ public class MainActivity extends AppCompatActivity implements
                             feedback("Alarm: " + separatedMessage[1]);
                         } else if (newMessage.contains("stop")) {
                             System.out.println("Turning off alarm");
-                            r.stop();
-                            ringtoneActive = false;
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Alarm error");
-                        e.printStackTrace();
-                    }
-                } else if (topic.equals(TIMER_TOPIC_CONTROL)) {
-                    System.out.println("TIMER TOPIC-Control");
-                    try {
-                        if (newMessage.contains("play")) {
-                            System.out.println("Playing timer");
-                            r.play();
-                            ringtoneActive = true;
-                            feedback("Time's up!");
-                        } else if (newMessage.contains("stop")) {
-                            System.out.println("Turning off timer");
                             r.stop();
                             ringtoneActive = false;
                         }
@@ -315,7 +275,9 @@ public class MainActivity extends AppCompatActivity implements
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     System.out.println("Publish successful to topic: " + topic);
+
                 }
+
                 @Override
                 public void onFailure(IMqttToken asyncActionToken,
                                       Throwable exception) {
@@ -355,104 +317,27 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    public void decodeInput(String result) {
-        if (result.equals("text")) {
-            return; //Ignores the basic "text" input if nothing has been heard
-        }
-        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
-        if (result.contains("lamp") && result.contains("on")) {
-            publish(FLOOR_LAMP, "device/TurnOn");
-            feedback("Turning on the lamp");
-        } else if (result.contains("lamp") && (result.contains("off")) || result.contains("of")) {
-            publish(FLOOR_LAMP, "device/TurnOff");
-            feedback("Turning off the lamp");
-        } else if (result.contains("set") && result.contains("timer")) {
-            long numbers = checkNumbers(result);
-            System.out.println("NUMBERS ARE: " + numbers);
-            String toSend = cleanInput(result, "Set timer");
-            //WHAT SHOULD BE SENT IS: set,timer,(n)time
-            System.out.println("TO SEND IS: " + toSend + numbers);
-            publish(TIMER_TOPIC_CREATE, toSend + numbers);
-        } else if (result.contains("set") || result.contains("create") && result.contains("alarm")) {
-            System.out.println("CREATE ALARM");
-            //TODO: FIX
-//            int secondsToAlarm = createAlarm();
-        } else if (result.contains("what") && result.contains("time") && ((result.contains("is it") || result.contains("is the")) || result.contains("'s the"))) {
-            feedback("The time is " + getCurrentTime());
-        } else if (result.contains("what") && (result.contains("is the") || result.contains("'s the")) && result.contains("weather")) {
-
-        } else {
-            feedback("No valid input, please try again!");
-        }
-    }
-
-    //TODO: This is what'll be read aloud
-    private String readTime(Date date) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
-        return format.format(date);
-    }
-
-    private String getCurrentTime() {
-        try {
-            TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
-            TimeZone.setDefault(timeZone);
-            Calendar calendar = Calendar.getInstance(timeZone, SWEDEN);
-            //TODO: Decode the string into "DAY, the DATE,
-            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
-            return df.format(calendar.getTime());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "ERROR, getCurrentTime(): " + e;
-        }
-    }
-
-    private String cleanInput(String input, String keywords) {
-        StringBuilder regexBuilder = new StringBuilder();
-        regexBuilder.append("(?i)\\b(");
-        String[] keyWordList = keywords.split(" ");
-        for (int i = 0; i < keyWordList.length; i++) {
-            if (i == 0) {
-                regexBuilder.append(keyWordList[i]);
-            } else {
-                regexBuilder.append("|");
-                regexBuilder.append(keyWordList[i]);
-            }
-        }
-        regexBuilder.append(")\\b");
-        System.out.println(regexBuilder.toString());
-        Pattern pattern = Pattern.compile(regexBuilder.toString());
-        Matcher matcher = pattern.matcher(input);
-        StringBuilder output = new StringBuilder();
-        while (matcher.find()) {
-            output.append(matcher.group()).append(",");
-        }
-        return output.toString();
-    }
+//    //OLD Controller
+//    public void decodeInput(ArrayList<String> result) {
+//
+//        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
+//        String resultString = result.toString().toLowerCase(); //TODO: Move this into onActivityResult ist? Snyggare för användaren
+//        if (resultString.contains("turn on the lamp")) {
+//            //publish "turnOn" to jarvis/livingroom/floorlamp
+//            feedback("Turning on the lamp");
+//        } else if (resultString.contains(("turn off the lamp"))) {
+//            //publish "turnOff" to jarvis/livingroom/floorlamp
+//            feedback("Turning off the lamp");
+//        } else {
+//            feedback("No valid input, please try again!");
+//        }
+//    }
 
     public void feedback(String string) {
         System.out.println(string);
         textToSpeech.speak(string, TextToSpeech.QUEUE_FLUSH, null);
         Toast toast = Toast.makeText(getApplicationContext(), string, Toast.LENGTH_SHORT);
         toast.show();
-    }
-
-    //TODO: ALARM-METHOD
-    private int createAlarm(String targetTime) {
-        Calendar calendar = Calendar.getInstance();
-        Date today = calendar.getTime();
-        System.out.println("Current Date and Time : " + today.getTime());
-//        calendar.add(Calendar.SECOND, seconds);
-        Date targetDate = calendar.getTime();
-        System.out.println("Target Date and Time : " + targetDate.getTime());
-        //TODO: GOAL: set,alarm,tomorrow,17:00 - use cleanInput!
-
-//        String alarmName = "Wake up";
-//        String alarmLength = "10";
-//        String repeatable = "false";
-//        String message = alarmName + "," + alarmLength + "," + repeatable;
-//        publish(ALARM_TOPIC_CREATE, message);
-//        System.out.println("Publishing alarm for " + alarmName);
-        return 0;
     }
 
     private void initModel() {
@@ -497,19 +382,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onResult(String hypothesis) {
         voiceInput.append(hypothesis + "\n");
-        String word = filter(hypothesis);
-        System.out.println("WORD: " + word);
-        decodeInput(word);
-    }
-
-    private static String filter(String input) {
-        //Remove "text" from the String and the JSON-esque styling
-        String cleanStr = input.replaceAll("[^A-Za-z0-9' ]", "").replaceAll(" +", " ");
-        String[] words = cleanStr.trim().split(" ", 2);
-        if (words.length > 0) {
-            return words[words.length - 1];
-        }
-        return "ERROR, try again";
     }
 
     @Override
@@ -557,7 +429,6 @@ public class MainActivity extends AppCompatActivity implements
     private void setErrorState(String message) {
         voiceInput.setText(message);
         ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
-        //findViewById(R.id.recognize_file).setEnabled(false);
         findViewById(R.id.recognize_mic).setEnabled(false);
     }
 
@@ -566,279 +437,80 @@ public class MainActivity extends AppCompatActivity implements
             case STATE_START:
                 voiceInput.setText(R.string.preparing);
                 voiceInput.setMovementMethod(new ScrollingMovementMethod());
-                //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(false);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_READY:
                 voiceInput.setText(R.string.ready);
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
-                //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_DONE:
-                //((Button) findViewById(R.id.recognize_file)).setText(R.string.recognize_file);
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
-                //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_FILE:
-                //((Button) findViewById(R.id.recognize_file)).setText(R.string.stop_file);
                 voiceInput.setText(getString(R.string.starting));
                 findViewById(R.id.recognize_mic).setEnabled(false);
-                //findViewById(R.id.recognize_file).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_MIC:
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.stop_microphone);
                 voiceInput.setText(getString(R.string.say_something));
-                //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((true));
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + state);
         }
     }
 
-    /*private void pause(boolean checked) {
-        if (speechService != null) {
-            speechService.setPause(checked);
-        }
-    }*/
+    public void getWeatherDetails(View view) {
+        String tempUrl = "";
+        String city = cityInput.getText().toString().trim();
+        String country = countryInput.getText().toString().trim();
 
-    private long checkNumbers(String input) {
-        double multiplier = 1; //Amount of seconds the numbers are worth
-        long result = 0;
-        long output = 0;
 
-        List<String> allowedStrings = Arrays.asList
-                (
-                        "zero", "one", "two", "three", "four", "five", "six", "seven",
-                        "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
-                        "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
-                        "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
-                        "hundred", "thousand", "million", "billion", "trillion"
-                );
 
-        if (input != null && input.length() > 0) {
-            String[] words = input.trim().split("\\s+");
-
-            for (String str : words) {
-                if (str.contains("minute")) {
-                    multiplier = 60;
-                } else if (str.contains("hour")) {
-                    multiplier = 3600;
-                } else if (str.contains("day")) {
-                    multiplier = 86400;
-                } else if (str.contains("week")) {
-                    multiplier = 604800;
-                } else if (str.contains("month")) {
-                    multiplier = 2629743.83;
-                } else if (str.contains("year")) {
-                    multiplier = 31556926;
-                }
-                if (allowedStrings.contains(str)) {
-                    if (str.equalsIgnoreCase("zero")) {
-                        result += 0;
-                    } else if (str.equalsIgnoreCase("one")) {
-                        result += 1;
-                    } else if (str.equalsIgnoreCase("two")) {
-                        result += 2;
-                    } else if (str.equalsIgnoreCase("three")) {
-                        result += 3;
-                    } else if (str.equalsIgnoreCase("four")) {
-                        result += 4;
-                    } else if (str.equalsIgnoreCase("five")) {
-                        result += 5;
-                    } else if (str.equalsIgnoreCase("six")) {
-                        result += 6;
-                    } else if (str.equalsIgnoreCase("seven")) {
-                        result += 7;
-                    } else if (str.equalsIgnoreCase("eight")) {
-                        result += 8;
-                    } else if (str.equalsIgnoreCase("nine")) {
-                        result += 9;
-                    } else if (str.equalsIgnoreCase("ten")) {
-                        result += 10;
-                    } else if (str.equalsIgnoreCase("eleven")) {
-                        result += 11;
-                    } else if (str.equalsIgnoreCase("twelve")) {
-                        result += 12;
-                    } else if (str.equalsIgnoreCase("thirteen")) {
-                        result += 13;
-                    } else if (str.equalsIgnoreCase("fourteen")) {
-                        result += 14;
-                    } else if (str.equalsIgnoreCase("fifteen")) {
-                        result += 15;
-                    } else if (str.equalsIgnoreCase("sixteen")) {
-                        result += 16;
-                    } else if (str.equalsIgnoreCase("seventeen")) {
-                        result += 17;
-                    } else if (str.equalsIgnoreCase("eighteen")) {
-                        result += 18;
-                    } else if (str.equalsIgnoreCase("nineteen")) {
-                        result += 19;
-                    } else if (str.equalsIgnoreCase("twenty")) {
-                        result += 20;
-                    } else if (str.equalsIgnoreCase("thirty")) {
-                        result += 30;
-                    } else if (str.equalsIgnoreCase("forty")) {
-                        result += 40;
-                    } else if (str.equalsIgnoreCase("fifty")) {
-                        result += 50;
-                    } else if (str.equalsIgnoreCase("sixty")) {
-                        result += 60;
-                    } else if (str.equalsIgnoreCase("seventy")) {
-                        result += 70;
-                    } else if (str.equalsIgnoreCase("eighty")) {
-                        result += 80;
-                    } else if (str.equalsIgnoreCase("ninety")) {
-                        result += 90;
-                    } else if (str.equalsIgnoreCase("hundred")) {
-                        result *= 100;
-                    } else if (str.equalsIgnoreCase("thousand")) {
-                        result *= 1000;
-                        output += result;
-                        result = 0;
-                    } else if (str.equalsIgnoreCase("million")) {
-                        result *= 1000000;
-                        output += result;
-                        result = 0;
-                    } else if (str.equalsIgnoreCase("billion")) {
-                        result *= 1000000000;
-                        output += result;
-                        result = 0;
-                    } else if (str.equalsIgnoreCase("trillion")) {
-                        result *= 1000000000000L;
-                        output += result;
-                        result = 0;
+        if (city.equals("")) {
+            weatherResult.setText("City field can not be empty!");
+        } else {
+            if (!country.equals("")) {
+                tempUrl = url + "?q=" + city + "," + country + "&appid=" + appid;
+            } else {
+                tempUrl = url + "?q=" + city + "&appid=" + appid;
+            }
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, tempUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    String output = "";
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        JSONArray jsonArray = jsonResponse.getJSONArray("weather");
+                        JSONObject jsonObjectWeather = jsonArray.getJSONObject(0);
+                        String description = jsonObjectWeather.getString("description");
+                        JSONObject jsonObjectMain = jsonResponse.getJSONObject("main");
+                        double temp = jsonObjectMain.getDouble("temp") - 273.15;
+                        double feelsLike = jsonObjectMain.getDouble("feels_like") - 273.15;
+                        JSONObject jsonObjectSys = jsonResponse.getJSONObject("sys");
+                        String countryName = jsonObjectSys.getString("country");
+                        String cityName = jsonResponse.getString("name");
+                        output += "Current weather of " + cityName + " (" + countryName + ")"
+                                + "\n Temp: " + Math.round(temp) + " °C"
+                                + "\n Feels Like: " + Math.round(feelsLike) + " °C"
+                                + "\n Description: " + description;
+                        weatherResult.setText(output);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
                 }
-            }
-            output += result * multiplier;
-            System.out.println("Number result: " + output);
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(getApplicationContext(), error.toString().trim(), Toast.LENGTH_SHORT).show();
+                }
+            });
+            RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+            requestQueue.add(stringRequest);
         }
-        return output;
     }
 
-//    BACKUP
-//    private long checkForNumbers(String input) {
-//        boolean isValidInput = true;
-//        long result = 0;
-//        long finalResult = 0;
-//        StringBuilder wordInput = new StringBuilder();
-//
-//        List<String> allowedStrings = Arrays.asList
-//                (
-//                        "zero", "one", "two", "three", "four", "five", "six", "seven",
-//                        "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
-//                        "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
-//                        "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
-//                        "hundred", "thousand", "million", "billion", "trillion"
-//                );
-//
-//        if (input != null && input.length() > 0) {
-//            input = input.replaceAll("-", " ");
-//            input = input.toLowerCase().replaceAll(" and", " ");
-//            String[] splittedParts = input.trim().split("\\s+");
-//
-//            for (String str : splittedParts) {
-//                if (!allowedStrings.contains(str)) {
-//                    isValidInput = false;
-//                    System.out.println("Word found : " + str);
-//                    wordInput.append(str + " ");
-//                } else {
-//
-//                }
-//            }
-//            if (isValidInput) {
-//                System.out.println("VALID INPUT!");
-//                for (String str : splittedParts) {
-//                    if (str.equalsIgnoreCase("zero")) {
-//                        result += 0;
-//                    } else if (str.equalsIgnoreCase("one")) {
-//                        result += 1;
-//                    } else if (str.equalsIgnoreCase("two")) {
-//                        result += 2;
-//                    } else if (str.equalsIgnoreCase("three")) {
-//                        result += 3;
-//                    } else if (str.equalsIgnoreCase("four")) {
-//                        result += 4;
-//                    } else if (str.equalsIgnoreCase("five")) {
-//                        result += 5;
-//                    } else if (str.equalsIgnoreCase("six")) {
-//                        result += 6;
-//                    } else if (str.equalsIgnoreCase("seven")) {
-//                        result += 7;
-//                    } else if (str.equalsIgnoreCase("eight")) {
-//                        result += 8;
-//                    } else if (str.equalsIgnoreCase("nine")) {
-//                        result += 9;
-//                    } else if (str.equalsIgnoreCase("ten")) {
-//                        result += 10;
-//                    } else if (str.equalsIgnoreCase("eleven")) {
-//                        result += 11;
-//                    } else if (str.equalsIgnoreCase("twelve")) {
-//                        result += 12;
-//                    } else if (str.equalsIgnoreCase("thirteen")) {
-//                        result += 13;
-//                    } else if (str.equalsIgnoreCase("fourteen")) {
-//                        result += 14;
-//                    } else if (str.equalsIgnoreCase("fifteen")) {
-//                        result += 15;
-//                    } else if (str.equalsIgnoreCase("sixteen")) {
-//                        result += 16;
-//                    } else if (str.equalsIgnoreCase("seventeen")) {
-//                        result += 17;
-//                    } else if (str.equalsIgnoreCase("eighteen")) {
-//                        result += 18;
-//                    } else if (str.equalsIgnoreCase("nineteen")) {
-//                        result += 19;
-//                    } else if (str.equalsIgnoreCase("twenty")) {
-//                        result += 20;
-//                    } else if (str.equalsIgnoreCase("thirty")) {
-//                        result += 30;
-//                    } else if (str.equalsIgnoreCase("forty")) {
-//                        result += 40;
-//                    } else if (str.equalsIgnoreCase("fifty")) {
-//                        result += 50;
-//                    } else if (str.equalsIgnoreCase("sixty")) {
-//                        result += 60;
-//                    } else if (str.equalsIgnoreCase("seventy")) {
-//                        result += 70;
-//                    } else if (str.equalsIgnoreCase("eighty")) {
-//                        result += 80;
-//                    } else if (str.equalsIgnoreCase("ninety")) {
-//                        result += 90;
-//                    } else if (str.equalsIgnoreCase("hundred")) {
-//                        result *= 100;
-//                    } else if (str.equalsIgnoreCase("thousand")) {
-//                        result *= 1000;
-//                        finalResult += result;
-//                        result = 0;
-//                    } else if (str.equalsIgnoreCase("million")) {
-//                        result *= 1000000;
-//                        finalResult += result;
-//                        result = 0;
-//                    } else if (str.equalsIgnoreCase("billion")) {
-//                        result *= 1000000000;
-//                        finalResult += result;
-//                        result = 0;
-//                    } else if (str.equalsIgnoreCase("trillion")) {
-//                        result *= 1000000000000L;
-//                        finalResult += result;
-//                        result = 0;
-//                    }
-//                }
-//
-//                finalResult += result;
-//                result = 0;
-//                System.out.println("FINAL RESULT: " + finalResult);
-//            }
-//        }
-//        return finalResult;
-//    }
 }
