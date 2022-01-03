@@ -1,30 +1,33 @@
 package com.example.projectjarvis;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.GpsStatus;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -34,6 +37,9 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.vosk.LibVosk;
 import org.vosk.LogLevel;
 import org.vosk.Model;
@@ -58,6 +64,8 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements
         RecognitionListener {
+
+    //9225e610-2149-44b1-aee9-ca6eef3ce0c1
 
     private TextToSpeech textToSpeech;
     private static final String FLOOR_LAMP = "project-jarvis/floor-lamp";
@@ -96,10 +104,21 @@ public class MainActivity extends AppCompatActivity implements
     private SpeechStreamService speechStreamService;
     private TextView voiceInput;
 
+
+    EditText cityInput, countryInput;
+    TextView weatherResult;
+    private final String url = "https://api.openweathermap.org/data/2.5/weather";
+    private final String appid = "e53301e27efa0b66d05045d91b2742d3";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        cityInput = findViewById(R.id.etCity);
+        countryInput = findViewById(R.id.etCountry);
+        weatherResult = findViewById(R.id.tvResult);
 
         //------Vosk
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
@@ -155,10 +174,6 @@ public class MainActivity extends AppCompatActivity implements
             System.out.println("Opening view devices!");
         });
 
-//        voiceBtn.setOnClickListener(v -> {
-//            getSpeechInput(v.getRootView()); //activates voice recog when clicking
-//        });
-
         //TODO: Remove alarm button, change to voice recog
         //TODO: Decode voice input and send a name and n seconds to ALARM_TOPIC!
         //TODO: Message should be written: "Alarm name, length, repeatable? (bool)"
@@ -184,22 +199,6 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
     }
-
-    //TODO: Vad är det här för? Gamla voice recog?
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        switch (requestCode) {
-//            case 10:
-//                if (resultCode == RESULT_OK && data != null) {
-//                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-//                    voiceInput.setText(result.get(0));
-////                    decodeInput(result); CURRENTLY UNUSED
-//                }
-//                break;
-//        }
-//    }
 
     // Old LINK
     public void mqttConnect(String topic) throws MqttException {
@@ -557,7 +556,6 @@ public class MainActivity extends AppCompatActivity implements
     private void setErrorState(String message) {
         voiceInput.setText(message);
         ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
-        //findViewById(R.id.recognize_file).setEnabled(false);
         findViewById(R.id.recognize_mic).setEnabled(false);
     }
 
@@ -566,48 +564,81 @@ public class MainActivity extends AppCompatActivity implements
             case STATE_START:
                 voiceInput.setText(R.string.preparing);
                 voiceInput.setMovementMethod(new ScrollingMovementMethod());
-                //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(false);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_READY:
                 voiceInput.setText(R.string.ready);
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
-                //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_DONE:
-                //((Button) findViewById(R.id.recognize_file)).setText(R.string.recognize_file);
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.recognize_microphone);
-                //findViewById(R.id.recognize_file).setEnabled(true);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_FILE:
-                //((Button) findViewById(R.id.recognize_file)).setText(R.string.stop_file);
                 voiceInput.setText(getString(R.string.starting));
                 findViewById(R.id.recognize_mic).setEnabled(false);
-                //findViewById(R.id.recognize_file).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((false));
                 break;
             case STATE_MIC:
                 ((Button) findViewById(R.id.recognize_mic)).setText(R.string.stop_microphone);
                 voiceInput.setText(getString(R.string.say_something));
-                //findViewById(R.id.recognize_file).setEnabled(false);
                 findViewById(R.id.recognize_mic).setEnabled(true);
-                //findViewById(R.id.pause).setEnabled((true));
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + state);
         }
     }
 
-    /*private void pause(boolean checked) {
-        if (speechService != null) {
-            speechService.setPause(checked);
+    public void getWeatherDetails(View view) {
+        String tempUrl = "";
+        String city = cityInput.getText().toString().trim();
+        String country = countryInput.getText().toString().trim();
+
+
+
+        if (city.equals("")) {
+            weatherResult.setText("City field can not be empty!");
+        } else {
+            if (!country.equals("")) {
+                tempUrl = url + "?q=" + city + "," + country + "&appid=" + appid;
+            } else {
+                tempUrl = url + "?q=" + city + "&appid=" + appid;
+            }
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, tempUrl, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    String output = "";
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        JSONArray jsonArray = jsonResponse.getJSONArray("weather");
+                        JSONObject jsonObjectWeather = jsonArray.getJSONObject(0);
+                        String description = jsonObjectWeather.getString("description");
+                        JSONObject jsonObjectMain = jsonResponse.getJSONObject("main");
+                        double temp = jsonObjectMain.getDouble("temp") - 273.15;
+                        double feelsLike = jsonObjectMain.getDouble("feels_like") - 273.15;
+                        JSONObject jsonObjectSys = jsonResponse.getJSONObject("sys");
+                        String countryName = jsonObjectSys.getString("country");
+                        String cityName = jsonResponse.getString("name");
+                        output += "Current weather of " + cityName + " (" + countryName + ")"
+                                + "\n Temp: " + Math.round(temp) + " °C"
+                                + "\n Feels Like: " + Math.round(feelsLike) + " °C"
+                                + "\n Description: " + description;
+                        weatherResult.setText(output);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, new Response.ErrorListener() {
+
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(getApplicationContext(), error.toString().trim(), Toast.LENGTH_SHORT).show();
+                }
+            });
+            RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+            requestQueue.add(stringRequest);
         }
-    }*/
+    }
 
     private long checkNumbers(String input) {
         double multiplier = 1; //Amount of seconds the numbers are worth
