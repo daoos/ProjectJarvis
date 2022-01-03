@@ -696,9 +696,13 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private long findNumbers(String input) {
-        double multiplier = 3600; //Amount of seconds the numbers are worth
+        double multiplier = 1; //Amount of seconds the numbers are worth
         long result = 0;
         long output = 0;
+
+        //TODO: IF input contains "at 8" / one of the days, fetch a calendar time instead?
+
+        //TODO: OR, maybe make findNumbers return a long[]?
 
         List<String> allowedStrings = Arrays.asList
                 (
@@ -714,27 +718,29 @@ public class MainActivity extends AppCompatActivity implements
                 "saturday", "sunday"
         };
 
-        if (input.contains("second")) {
-            multiplier = 1;
-        } else if (input.contains("minute")) {
-            multiplier = 60;
-        } else if (input.contains("day") || input.contains("days")) {
-            boolean weekdayFound = false;
-            for (String day : days) {
-                if (input.contains(day)) {
-                    weekdayFound = true;
-                    break;
+        if (input.contains("in") || input.contains("from now")) {
+            if (input.contains("hour")) {
+                multiplier = 3600;
+            } else if (input.contains("minute")) {
+                multiplier = 60;
+            } else if (input.contains("day") || input.contains("days")) {
+                boolean weekdayFound = false;
+                for (String day : days) {
+                    if (input.contains(day)) {
+                        weekdayFound = true;
+                        break;
+                    }
                 }
+                if (!weekdayFound) {
+                    multiplier = 86400;
+                }
+            } else if (input.contains("week")) {
+                multiplier = 604800;
+            } else if (input.contains("month")) {
+                multiplier = 2629743.83;
+            } else if (input.contains("year")) {
+                multiplier = 31556926;
             }
-            if (!weekdayFound) {
-                multiplier = 86400;
-            }
-        } else if (input.contains("week")) {
-            multiplier = 604800;
-        } else if (input.contains("month")) {
-            multiplier = 2629743.83;
-        } else if (input.contains("year")) {
-            multiplier = 31556926;
         }
 
         String[] words = input.trim().split("\\s+");
