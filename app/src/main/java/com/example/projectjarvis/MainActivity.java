@@ -75,7 +75,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = "MainActivity";
 
     //TOPICS
-    private static final String FLOOR_LAMP = "project-jarvis/floor-lamp";
+    private static final String DEVICE_TOPICS = "project-jarvis/shopping-list/remove";
+    private static final String FLOOR_LAMP = "project-jarvis/floorlamp"; //TODO: Remove
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
     private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
     private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
@@ -85,7 +86,10 @@ public class MainActivity extends AppCompatActivity implements
     private static final String SHOPPING_LIST_READ = "project-jarvis/shopping-list/read";
     private static final String FEEDBACK_TOPIC = "project-jarvis/feedback";
     private static final String DEVICES_TOPIC = "project-jarvis/devices";
-    private static final String[] SUBSCRIPTION_TOPICS = {FEEDBACK_TOPIC, ALARM_TOPIC_CONTROL, TIMER_TOPIC_CONTROL};
+    private static final String[] SUBSCRIPTION_TOPICS = {
+            DEVICE_TOPICS, FEEDBACK_TOPIC,
+            ALARM_TOPIC_CONTROL, TIMER_TOPIC_CONTROL
+    };
 
     //creates the ringtone / alarm
     private boolean ringtoneActive = false;
@@ -152,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         Button devices = findViewById(R.id.devices);
-        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName, command"));
+        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "testDevice,1,add"));
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
