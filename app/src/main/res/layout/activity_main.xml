@@ -109,12 +109,11 @@
         android:id="@+id/devices"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="96dp"
         android:text="Devices"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/turnOffBtn" />
+        app:layout_constraintTop_toBottomOf="@+id/button" />
 
     <Button
         android:id="@+id/recognize_mic"
@@ -151,7 +150,6 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Get weather"
-        android:onClick="getWeatherDetails"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/alarm" />
 
