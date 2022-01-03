@@ -55,6 +55,7 @@ import org.vosk.android.StorageService;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -73,21 +74,25 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = "MainActivity";
 
     //TOPICS
-    private static final String DEVICE_TOPICS = "project-jarvis/shopping-list/remove";
     private static final String FLOOR_LAMP = "project-jarvis/floorlamp"; //TODO: Remove
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
-    private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
     private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
-    private static final String TIMER_TOPIC_CONTROL = "project-jarvis/timer/control";
     private static final String SHOPPING_LIST_CREATE = "project-jarvis/shopping-list/create"; //TODO: ONÖDIG?
     private static final String SHOPPING_LIST_CONTROL = "project-jarvis/shopping-list/control";
+    private static final String SHOPPING_LIST_REMOVE = "project-jarvis/shopping-list/remove";
     private static final String SHOPPING_LIST_READ = "project-jarvis/shopping-list/read";
+    private static final String DEVICES_TOPIC = "project-jarvis/devices"; //Used for creating and removing devices
+
+//ALL SUBSCRIPTION TOPICS
+    private static final String DEVICES_LIST_TOPIC = "project-jarvis/devices/list"; //lists all available devices
     private static final String FEEDBACK_TOPIC = "project-jarvis/feedback";
-    private static final String DEVICES_TOPIC = "project-jarvis/devices";
+    private static final String ALARM_TOPIC_CONTROL = "project-jarvis/alarm/control";
+    private static final String TIMER_TOPIC_CONTROL = "project-jarvis/timer/control";
     private static final String[] SUBSCRIPTION_TOPICS = {
-            DEVICE_TOPICS, FEEDBACK_TOPIC,
+            DEVICES_LIST_TOPIC, FEEDBACK_TOPIC,
             ALARM_TOPIC_CONTROL, TIMER_TOPIC_CONTROL
     };
+    private ArrayList<String> deviceTopics; //Collection for all of our device topics, updated from server
 
     //creates the ringtone / alarm
     private boolean ringtoneActive = false;
