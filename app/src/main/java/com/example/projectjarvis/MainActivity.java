@@ -17,6 +17,8 @@ import android.text.PrecomputedText;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -145,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements
         Button turnOffBtn = findViewById(R.id.turnOffBtn);
         turnOffBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOff"));
 
-        ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
+        //ImageButton voiceBtn = findViewById(R.id.voiceBtn); //button for activating voice recognition
         ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
