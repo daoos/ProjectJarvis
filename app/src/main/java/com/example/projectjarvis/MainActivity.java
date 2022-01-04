@@ -405,6 +405,8 @@ public class MainActivity extends AppCompatActivity implements
                     message = "device/TurnOff";
                 } else if (input.contains("on")) {
                     message = "device/TurnOn";
+                } else if (input.contains("ring")) {
+                    message = "device/bell";
                 }
                 publish(topic, message);
                 published = true;
@@ -460,6 +462,7 @@ public class MainActivity extends AppCompatActivity implements
                 name = nameMatcher.group(1); // " that is awesome"
                 System.out.println("Named: " + name);
             }
+            //TODO: stop reading name after a certain word, such as "and"
         }
         return name;
     }
