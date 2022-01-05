@@ -92,10 +92,10 @@
         app:layout_constraintTop_toBottomOf="@+id/turnOnBtn" />
 
     <Button
-        android:id="@+id/alarm"
+        android:id="@+id/alarmBtn"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="ALARM"
+        android:text="DISABLE ALARM"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/turnOffBtn" />
@@ -108,7 +108,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/alarm" />
+        app:layout_constraintTop_toBottomOf="@+id/alarmBtn" />
 
     <Button
         android:id="@+id/recognize_mic"

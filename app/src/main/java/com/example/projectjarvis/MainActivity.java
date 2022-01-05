@@ -13,15 +13,10 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
-import android.text.PrecomputedText;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,7 +57,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -81,10 +75,11 @@ public class MainActivity extends AppCompatActivity implements
     private static final String ALARM_TOPIC_CREATE = "project-jarvis/alarm/create";
     private static final String TIMER_TOPIC_CREATE = "project-jarvis/timer/create";
     private static final String SHOPPING_LIST_CREATE = "project-jarvis/shopping-list/create"; //TODO: ONÖDIG?
-    private static final String SHOPPING_LIST_CONTROL = "project-jarvis/shopping-list/control";
+    private static final String SHOPPING_LIST_DELETE = "project-jarvis/shopping-list/delete";
     private static final String SHOPPING_LIST_REMOVE = "project-jarvis/shopping-list/remove";
     private static final String SHOPPING_LIST_READ = "project-jarvis/shopping-list/read";
-    private static final String DEVICES_TOPIC = "project-jarvis/devices"; //Used for creating and removing devices
+    private static final String SHOPPING_LIST_READ_ALL = "project-jarvis/shopping-list/read-all";
+    private static final String SHOPPING_LIST_ADD = "project-jarvis/shopping-list/add";
 
     //ALL SUBSCRIPTION TOPICS
     private static final String DEVICES_LIST_TOPIC = "project-jarvis/devices/list"; //lists all available devices
@@ -98,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements
     private final HashMap<String, String> deviceTopicsMap = new HashMap<>();
 
     //creates the ringtone / alarm
+    private Button alarmBtn;
     private boolean ringtoneActive = false;
     private static final Locale SWEDEN = new Locale("sv", "SE");
     private final Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
@@ -161,7 +157,6 @@ public class MainActivity extends AppCompatActivity implements
         //ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
         Button devices = findViewById(R.id.devices);
-        devices.setOnClickListener(v -> publish(DEVICES_TOPIC, "deviceName,id,command"));
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
@@ -186,33 +181,19 @@ public class MainActivity extends AppCompatActivity implements
         }
 
 
-        /*devicesBtn.setOnClickListener(v -> {
+        devices.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), Devices.class);
             startActivity(intent);
             System.out.println("Opening view devices!");
-        });*/
+        });
 
-        //TODO: Remove alarm button, change to voice recog
-        //TODO: Decode voice input and send a name and n seconds to ALARM_TOPIC!
-        //TODO: Message should be written: "Alarm name, length, repeatable? (bool)"
-        Button alarmBtn = findViewById(R.id.alarm);
+        alarmBtn = findViewById(R.id.alarmBtn);
+        alarmBtn.setEnabled(ringtoneActive);
         alarmBtn.setOnClickListener(v -> {
-            if (!ringtoneActive) {
-//                Calendar date = Calendar.getInstance();
-//                System.out.println("Current Date and Time : " + date.getTime());
-//                long timeInSecs = date.getTimeInMillis();
-//                Date afterAdding = new Date(timeInSecs + (10 * 1000)); //adds ten seconds
-//                System.out.println("After adding 1 min : " + afterAdding);
-//                String setTime = afterAdding.toString();
-                String alarmName = "Wake up";
-                String alarmLength = "10";
-                String repeatable = "false";
-                String message = alarmName + "," + alarmLength + "," + repeatable;
-                publish(ALARM_TOPIC_CREATE, message);
-                System.out.println("Publishing alarm for " + alarmName);
-
-            } else {
+            if (ringtoneActive) {
                 alarmControl("stop");
+            } else {
+                feedback("No active alarm");
             }
         });
     }
@@ -248,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements
                     case DEVICES_LIST_TOPIC:
                         unpackDevices(separatedMessage);
                         break;
+                        //TODO: REMOVE, Use feedback-topic instead
                     case ALARM_TOPIC_CONTROL:
                         System.out.println("ALARM ALARM-Control!");
                         try {
@@ -277,9 +259,6 @@ public class MainActivity extends AppCompatActivity implements
                             e.printStackTrace();
                         }
                         break;
-                    case SHOPPING_LIST_READ:
-                        feedback(newMessage);
-                        break;
                 }
                 if (topic.equals(FEEDBACK_TOPIC)) {
                     //TODO: Control so only feedbacks relevant stuff
@@ -307,9 +286,12 @@ public class MainActivity extends AppCompatActivity implements
         if (command.equals("play")) {
             System.out.println("Playing alarm sound");
             ringtone.play();
+            ringtoneActive = true;
+            alarmBtn.setEnabled(ringtoneActive);
         } else {
             System.out.println("Stopping alarm sound");
             ringtone.stop();
+            ringtoneActive = false;
         }
     }
 
@@ -407,6 +389,8 @@ public class MainActivity extends AppCompatActivity implements
                     message = "device/TurnOn";
                 } else if (input.contains("ring")) {
                     message = "device/bell";
+                } else {
+                    message = "device";
                 }
                 publish(topic, message);
                 published = true;
@@ -437,14 +421,55 @@ public class MainActivity extends AppCompatActivity implements
                 cityInput.setText(input.substring(input.lastIndexOf(" ") + 1)); //detect city
                 //feedback(getWeatherDetails(input.substring(input.lastIndexOf(" ") + 1)));
                 getWeatherDetails();
+            } else if (input.contains("shopping list")) {
+                if (input.contains("create") || input.contains("make")) {
+                    String listName = findName(input);
+                    publish(SHOPPING_LIST_CREATE, listName);
+                } else if (input.contains("delete") || input.contains("remove") && !input.contains("from")) {
+                    String listName = findName(input);
+                    publish(SHOPPING_LIST_DELETE, listName);
+                } else if (input.contains("list all")) {
+                    publish(SHOPPING_LIST_READ_ALL, "list all");
+                } else if (input.contains("add") || input.contains("put")) {
+                    //TODO: Fix
+                    String item;
+                    if (input.contains(" a ")) {
+                        item = findWordsBetween(input, "a", "to");
+                    } else if (input.contains(" an ")) {
+                        item = findWordsBetween(input, "an", "to");
+                    } else {
+                        item = findWordsBetween(input, "add", "to");
+                    }
+                    String name = findName(input);
+                    long amount = findNumbers(input);
+                    String strAmount = String.valueOf(amount);
+                    String[] keywords = {name, item};
+                    String command = cleanInput(input, keywords) + "," + strAmount;
+                    publish(SHOPPING_LIST_ADD, command);
+                } else if (input.contains("read")) {
+                    String name = findName(input);
+                    publish(SHOPPING_LIST_READ, name);
+                }
             } else {
                 feedback("No valid input, please try again!");
             }
         }
     }
 
+    private String findWordsBetween(String input, String start, String end) {
+        Pattern pattern = Pattern.compile("(?<=\\b " + start + " \\b).*?(?=\\b "+end+" \\b)");
+        Matcher matcher = pattern.matcher(input);
+        StringBuilder stringBuilder = new StringBuilder();
+        while (matcher.find()) {
+            stringBuilder.append(matcher.group());
+            System.out.println("WORD MATCH: " + stringBuilder.toString());
+        }
+        System.out.println("!!!!!!!! FINDWORDS BETWEEN, MATCHES = " + stringBuilder.toString());
+        return stringBuilder.toString();
+    }
+
     private String findName(String input) {
-        String name = "noName";
+        String name = "no name";
         String patternString = "";
         boolean match = false;
         //TODO: Stop name after "and"?
@@ -464,7 +489,7 @@ public class MainActivity extends AppCompatActivity implements
             }
             //TODO: stop reading name after a certain word, such as "and"
         }
-        return name;
+        return name.trim();
     }
 
     //TODO: This is what'll be read aloud when asking for the time
@@ -489,7 +514,7 @@ public class MainActivity extends AppCompatActivity implements
         return Calendar.getInstance(timeZone, SWEDEN);
     }
 
-    //takes a String and the Keywords for that string, returns String with only the keywords
+    //takes a String and the Keywords for that string, returns String with only the keywords separated by comma
     private String cleanInput(String input, String[] keywords) {
         StringBuilder regexBuilder = new StringBuilder();
         regexBuilder.append("(?i)\\b(");
