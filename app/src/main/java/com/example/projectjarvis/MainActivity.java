@@ -330,7 +330,8 @@ public class MainActivity extends AppCompatActivity implements
             subToken.setActionCallback(new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    System.out.println("Publish successful to topic: " + topic + " message: " + message);
+                    System.out.println("Publish successful to topic: " + topic +
+                            " message: " + message);
                 }
 
                 @Override
@@ -376,7 +377,6 @@ public class MainActivity extends AppCompatActivity implements
         if (input.equals("text")) {
             return; //Ignores the basic "text" input if nothing has been heard
         }
-        //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
 
         boolean published = false;
         String timeCommand = "0";
@@ -393,13 +393,15 @@ public class MainActivity extends AppCompatActivity implements
                     }
                 } else if (input.contains("ring")) {
                     message = "device/bell";
-                } else if (input.contains("rename") || (input.contains("name") && input.contains("change"))) {
+                } else if (input.contains("rename") || (input.contains("name")
+                        && input.contains("change"))) {
                     String newName = deviceName;
                     if (input.contains("to")) {
                         newName = findWordsAfter(input, "to ");
                     }
                     message = "device/setName" + "," + newName;
-                } else if (input.contains("dim") || input.contains("turn up") || input.contains("turn down")) {
+                } else if (input.contains("dim") || input.contains("turn up")
+                        || input.contains("turn down")) {
                     feedback("Dimming is not yet implemented");
                 } else if (input.contains("down")) {
                     feedback("Command 'down' is not yet implemented");
@@ -411,8 +413,10 @@ public class MainActivity extends AppCompatActivity implements
                     feedback("Command 'learn' is not yet implemented");
                 } else if (input.contains("rbg") || input.contains("color")) {
                     feedback("Command 'rgb' is not yet implemented");
-                } else if (input.contains("add") || input.contains("group") || input.contains("remove") || input.contains("ignore")) {
-                    feedback("To handle your devices, please log in to your account on live.telldus.com");
+                } else if (input.contains("add") || input.contains("group") ||
+                        input.contains("remove") || input.contains("ignore")) {
+                    feedback("To handle your devices, please log in to your" +
+                            "account on live.telldus.com");
                 }
                 if (message.contains("device/")) {
                     if (input.contains(" in ")) {
@@ -426,7 +430,8 @@ public class MainActivity extends AppCompatActivity implements
                         timeCommand = String.valueOf(numbers[0]);
                         timeUnit = (String) numbers[1];
                     }
-                    publish(deviceTopicsMap.get(deviceName), message + "," + timeCommand + "," + timeUnit);
+                    publish(deviceTopicsMap.get(deviceName), message + "," +
+                            timeCommand + "," + timeUnit);
                     published = true;
                 }
             }
@@ -441,17 +446,22 @@ public class MainActivity extends AppCompatActivity implements
                 //WHAT SHOULD BE SENT IS: set,timer,(n)time
                 System.out.println("TO SEND IS: " + toSend + numbers);
                 publish(TIMER_TOPIC_CREATE, toSend + numbers);
-            } else if (input.contains("set") || input.contains("create") && input.contains("alarm")) {
+            } else if (input.contains("set") || input.contains("create")
+                    && input.contains("alarm")) {
                 System.out.println("CREATE ALARM");
                 System.out.println("CREATED ALARM: " + createAlarm(input));
                 //TODO: String STRING = createAlarm(input);
 //TODO:            publish(ALARM_TOPIC_CREATE, STRING:(name,every-day,8:00));
-            } else if (input.contains("alarm") && (input.contains("off") || input.contains("of"))) {
+            } else if (input.contains("alarm") && (input.contains("off")
+                    || input.contains("of"))) {
                 alarmControl("stop");
-            } else if (input.contains("what") && input.contains("time") && ((input.contains("is it") || input.contains("is the")) || input.contains("'s the"))) {
+            } else if (input.contains("what") && input.contains("time") &&
+                    ((input.contains("is it") || input.contains("is the"))
+                            || input.contains("'s the"))) {
 //                String time = ;
                 feedback("The time is " + stringTime(getCurrentTime()));
-            } else if (input.contains("what") && (input.contains("is the") || input.contains("'s the")) && input.contains("weather")) {
+            } else if (input.contains("what") && (input.contains("is the")
+                    || input.contains("'s the")) && input.contains("weather")) {
                 System.out.println("WEATHER");
                 cityInput.setText(input.substring(input.lastIndexOf(" ") + 1)); //detect city
                 //feedback(getWeatherDetails(input.substring(input.lastIndexOf(" ") + 1)));
@@ -460,7 +470,8 @@ public class MainActivity extends AppCompatActivity implements
                 if (input.contains("create") || input.contains("make")) {
                     String listName = findName(input);
                     publish(SHOPPING_LIST_CREATE, listName);
-                } else if ((input.contains("delete") || input.contains("remove")) && !input.contains("from")) {
+                } else if ((input.contains("delete") || input.contains("remove"))
+                        && !input.contains("from")) {
                     String listName = findName(input);
                     publish(SHOPPING_LIST_DELETE, listName);
                 } else if (input.contains("list all")) {
@@ -493,7 +504,6 @@ public class MainActivity extends AppCompatActivity implements
                 feedback("No valid input, please try again!");
             }
         }
-
     }
 
     //TODO: Clean up.
@@ -700,7 +710,8 @@ public class MainActivity extends AppCompatActivity implements
 
     //Removes "text" from the String and the JSON-esque styling
     private static String filter(String input) {
-        String cleanStr = input.replaceAll("[^A-Za-z0-9' ]", "").replaceAll(" +", " ");
+        String cleanStr = input.replaceAll("[^A-Za-z0-9' ]", "")
+                .replaceAll(" +", " ");
         String[] words = cleanStr.trim().split(" ", 2);
         if (words.length > 0) {
             return words[words.length - 1];
@@ -806,7 +817,8 @@ public class MainActivity extends AppCompatActivity implements
                     output += "Current weather in " + cityName
                             + "\n Temp: " + Math.round(temp) + " °C"
                             + "\n Feels Like: " + Math.round(feelsLike) + " °C"
-                            + "\n Sky: " + description.substring(0, 1).toUpperCase() + description.substring(1).toLowerCase();
+                            + "\n Sky: " + description.substring(0, 1).toUpperCase()
+                            + description.substring(1).toLowerCase();
                     weatherResult.setText(output);
                     feedback(output);
                 } catch (JSONException e) {
@@ -817,7 +829,8 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(), error.toString().trim(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), error.toString().trim(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
         RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
