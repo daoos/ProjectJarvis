@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.function.LongToIntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -149,10 +150,10 @@ public class MainActivity extends AppCompatActivity implements
         //------Vosk
 
         Button turnOnBtn = findViewById(R.id.turnOnBtn);
-        turnOnBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOn"));
+        turnOnBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOn,0,seconds"));
 
         Button turnOffBtn = findViewById(R.id.turnOffBtn);
-        turnOffBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOff"));
+        turnOffBtn.setOnClickListener(v -> publish(FLOOR_LAMP, "device/turnOff,0,seconds"));
 
         //ImageButton devicesBtn = findViewById(R.id.devicesBtn); //Devices button
 
@@ -229,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements
                     case DEVICES_LIST_TOPIC:
                         unpackDevices(separatedMessage);
                         break;
-                        //TODO: REMOVE, Use feedback-topic instead
+                    //TODO: REMOVE, Use feedback-topic instead
                     case ALARM_TOPIC_CONTROL:
                         System.out.println("ALARM ALARM-Control!");
                         try {
@@ -378,29 +379,63 @@ public class MainActivity extends AppCompatActivity implements
         //TODO: skulle kunna skapa en samling med fraser som är okej? Ev göra det i en egen klass eller typ JSON?
 
         boolean published = false;
+        String timeCommand = "0";
+        String timeUnit = "second";
         Set<String> deviceNames = deviceTopicsMap.keySet();
         for (String deviceName : deviceNames) {
             if (input.contains(deviceName)) {
-                String topic = deviceTopicsMap.get(deviceName);
-                String message = input;
-                if (input.contains("off") || input.contains("of")) {
-                    message = "device/TurnOff";
-                } else if (input.contains("on")) {
-                    message = "device/TurnOn";
+                String message = "device/info";
+                if ((input.contains("turn") || input.contains("switch"))) {
+                    if (input.contains("off") || input.contains("of")) {
+                        message = "device/TurnOff";
+                    } else if (input.contains("on")) {
+                        message = "device/TurnOn";
+                    }
                 } else if (input.contains("ring")) {
                     message = "device/bell";
-                } else {
-                    message = "device";
+                } else if (input.contains("rename") || (input.contains("name") && input.contains("change"))) {
+                    String newName = deviceName;
+                    if (input.contains("to")) {
+                        newName = findWordsAfter(input, "to ");
+                    }
+                    message = "device/setName" + "," + newName;
+                } else if (input.contains("dim") || input.contains("turn up") || input.contains("turn down")) {
+                    feedback("Dimming is not yet implemented");
+                } else if (input.contains("down")) {
+                    feedback("Command 'down' is not yet implemented");
+                } else if (input.contains("history")) {
+                    feedback("Device history is not yet implemented");
+                } else if (input.contains("info")) {
+                    feedback("See the server log for device info.");
+                } else if (input.contains("learn")) {
+                    feedback("Command 'learn' is not yet implemented");
+                } else if (input.contains("rbg") || input.contains("color")) {
+                    feedback("Command 'rgb' is not yet implemented");
+                } else if (input.contains("add") || input.contains("group") || input.contains("remove") || input.contains("ignore")) {
+                    feedback("To handle your devices, please log in to your account on live.telldus.com");
                 }
-                publish(topic, message);
-                published = true;
+                if (message.contains("device/")) {
+                    if (input.contains(" in ")) {
+//                        Object[] numbers = findNumbers(findWordsAfter(input, " in "));
+                        Object[] numbers = findNumbers(input);
+                        timeCommand = String.valueOf(numbers[0]);
+                        timeUnit = (String) numbers[1];
+                    } else if (input.contains(" after ")) {
+//                        Object[] numbers = findNumbers(findWordsAfter(input, " after "));
+                        Object[] numbers = findNumbers(input);
+                        timeCommand = String.valueOf(numbers[0]);
+                        timeUnit = (String) numbers[1];
+                    }
+                    publish(deviceTopicsMap.get(deviceName), message + "," + timeCommand + "," + timeUnit);
+                    published = true;
+                }
             }
         }
 
         if (!published) {
             if (input.contains("set") && input.contains("timer")) {
-                long numbers = findNumbers(input);
-                System.out.println("NUMBERS ARE: " + numbers);
+                Object[] getNumbers = findNumbers(input);
+                long numbers = (long) getNumbers[0];
                 String[] keywords = {"set", "timer"};
                 String toSend = cleanInput(input, keywords);
                 //WHAT SHOULD BE SENT IS: set,timer,(n)time
@@ -425,15 +460,19 @@ public class MainActivity extends AppCompatActivity implements
                 if (input.contains("create") || input.contains("make")) {
                     String listName = findName(input);
                     publish(SHOPPING_LIST_CREATE, listName);
-                } else if (input.contains("delete") || input.contains("remove") && !input.contains("from")) {
+                } else if ((input.contains("delete") || input.contains("remove")) && !input.contains("from")) {
                     String listName = findName(input);
                     publish(SHOPPING_LIST_DELETE, listName);
                 } else if (input.contains("list all")) {
                     publish(SHOPPING_LIST_READ_ALL, "list all");
                 } else if (input.contains("add") || input.contains("put")) {
                     //TODO: Fix
-                    String item;
-                    if (input.contains(" a ")) {
+                    String item = "nothing";
+                    Object[] numbers = findNumbers(input);
+                    long amount = (long) numbers[0];
+                    if (!String.valueOf(amount).equals("0")) {
+                        item = findWordsBetween(input, String.valueOf(amount), " to");
+                    } else if (input.contains(" a ")) {
                         item = findWordsBetween(input, "a", "to");
                     } else if (input.contains(" an ")) {
                         item = findWordsBetween(input, "an", "to");
@@ -441,8 +480,8 @@ public class MainActivity extends AppCompatActivity implements
                         item = findWordsBetween(input, "add", "to");
                     }
                     String name = findName(input);
-                    long amount = findNumbers(input);
                     String strAmount = String.valueOf(amount);
+                    System.out.println("StrAmount to be added is: " + strAmount);
                     String[] keywords = {name, item};
                     String command = cleanInput(input, keywords) + "," + strAmount;
                     publish(SHOPPING_LIST_ADD, command);
@@ -454,10 +493,12 @@ public class MainActivity extends AppCompatActivity implements
                 feedback("No valid input, please try again!");
             }
         }
+
     }
 
+    //TODO: Clean up.
     private String findWordsBetween(String input, String start, String end) {
-        Pattern pattern = Pattern.compile("(?<=\\b " + start + " \\b).*?(?=\\b "+end+" \\b)");
+        Pattern pattern = Pattern.compile("(?<=\\b " + start + " \\b).*?(?=\\b " + end + " \\b)");
         Matcher matcher = pattern.matcher(input);
         StringBuilder stringBuilder = new StringBuilder();
         while (matcher.find()) {
@@ -468,31 +509,38 @@ public class MainActivity extends AppCompatActivity implements
         return stringBuilder.toString();
     }
 
+    private String findWordsAfter(String input, String start) {
+        String output = "";
+        Pattern namePattern = Pattern.compile(start + "(.*)");
+        Matcher nameMatcher = namePattern.matcher(input);
+        if (nameMatcher.find()) {
+            output = nameMatcher.group(1);
+            System.out.println("All words after: " + start + " are: " + output);
+        }
+        assert output != null;
+        return output.trim();
+    }
+
+    //TODO: Replace findName usage with findWordsBetween and/or findWordsAfter
     private String findName(String input) {
         String name = "no name";
-        String patternString = "";
-        boolean match = false;
-        //TODO: Stop name after "and"?
-        if (input.contains("named")) {
-            patternString = "named";
-            match = true;
-        } else if (input.contains("name")) {
-            patternString = "name";
-            match = true;
-        }
-        if (match) {
-            Pattern namePattern = Pattern.compile(patternString + "(.*)");
-            Matcher nameMatcher = namePattern.matcher(input);
-            if (nameMatcher.find()) {
-                name = nameMatcher.group(1); // " that is awesome"
-                System.out.println("Named: " + name);
+        if (input.contains("named ")) {
+            if (!input.contains("and")) {
+                name = findWordsAfter(input, "name");
+            } else {
+                name = findWordsBetween(input, "name", "and");
             }
-            //TODO: stop reading name after a certain word, such as "and"
+        } else if (input.contains("name ")) {
+            if (!input.contains("and")) {
+                name = findWordsAfter(input, "name");
+            } else {
+                name = findWordsBetween(input, "name", "and");
+            }
         }
         return name.trim();
     }
 
-    //TODO: This is what'll be read aloud when asking for the time
+    //TODO: This is what'll be read aloud when asking for the time should change 06-03 to "3rd of june" etc
     private String readTime(Date date) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm");
         return format.format(date);
@@ -517,24 +565,30 @@ public class MainActivity extends AppCompatActivity implements
     //takes a String and the Keywords for that string, returns String with only the keywords separated by comma
     private String cleanInput(String input, String[] keywords) {
         StringBuilder regexBuilder = new StringBuilder();
+        StringBuilder outputBuilder = new StringBuilder();
+        input = input.replace("/", ":");
         regexBuilder.append("(?i)\\b(");
+        System.out.println("Keyword length is : " + keywords.length);
         for (int i = 0; i < keywords.length; i++) {
-            if (i == 0) {
-                regexBuilder.append(keywords[i]);
-            } else {
+            if (i != 0) {
                 regexBuilder.append("|");
-                regexBuilder.append(keywords[i]);
             }
+            regexBuilder.append(keywords[i]);
+            System.out.println("KEYWORD: " + keywords[i]);
         }
         regexBuilder.append(")\\b");
         System.out.println("Keywords in Regex are: " + regexBuilder.toString());
+        System.out.println("MESSAGE IS: " + input);
         Pattern pattern = Pattern.compile(regexBuilder.toString());
         Matcher matcher = pattern.matcher(input);
-        StringBuilder output = new StringBuilder();
         while (matcher.find()) {
-            output.append(matcher.group()).append(",");
+            outputBuilder.append(matcher.group());
+            outputBuilder.append(",");
+            System.out.println("Matcher group is : " + matcher.group());
         }
-        return output.toString();
+        String output = outputBuilder.toString();
+        output = output.replace(":", "/");
+        return output;
     }
 
     public void feedback(String string) {
@@ -550,8 +604,11 @@ public class MainActivity extends AppCompatActivity implements
         //TODO: GOAL: tomorrow,17:00 - use cleanInput!
         //TODO: name,every-day,8:00
         String alarmName = findName(input); //name of the alarm, if it has one
-        long inputNumbers = findNumbers(input); //amount of seconds to alarm
-        int addSeconds = (int) inputNumbers;
+        Object[] inputNumbers = findNumbers(input); //amount of seconds to alarm
+        int addSeconds = (int) inputNumbers[0]; //TODO: FIX
+
+        String unit = (String) inputNumbers[1]; //TODO: Should return second/hour/day etc
+
         Calendar calendar = getCurrentTime();
         System.out.println("Calendar time is " + calendar.getTime().toString());
         calendar.add(Calendar.SECOND, addSeconds);
@@ -637,7 +694,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onResult(String hypothesis) {
         voiceInput.append(hypothesis + "\n");
         String word = filter(hypothesis);
-        System.out.println("WORD: " + word);
+        System.out.println("Result: " + word);
         decodeInput(word);
     }
 
@@ -767,10 +824,13 @@ public class MainActivity extends AppCompatActivity implements
         requestQueue.add(stringRequest);
     }
 
-    private long findNumbers(String input) {
+    private Object[] findNumbers(String input) {
         double multiplier = 1; //Amount of seconds the numbers are worth
         long result = 0;
         long output = 0;
+        String resultString = ""; //TODO: Add?
+        String unit = "second";
+        Object[] returnResult = {output, unit};
 
         //TODO: IF input contains "at 8" / one of the days, fetch a calendar time instead?
 
@@ -790,11 +850,13 @@ public class MainActivity extends AppCompatActivity implements
                 "saturday", "sunday"
         };
 
-        if (input.contains("in") || input.contains("from now")) {
+        if (input.contains(" in ") || input.contains("from now") || input.contains(" at ")) {
             if (input.contains("hour")) {
                 multiplier = 3600;
+                unit = "hour";
             } else if (input.contains("minute")) {
                 multiplier = 60;
+                unit = "minute";
             } else if (input.contains("day") || input.contains("days")) {
                 boolean weekdayFound = false;
                 for (String day : days) {
@@ -805,13 +867,17 @@ public class MainActivity extends AppCompatActivity implements
                 }
                 if (!weekdayFound) {
                     multiplier = 86400;
+                    unit = "day";
                 }
             } else if (input.contains("week")) {
                 multiplier = 604800;
+                unit = "week";
             } else if (input.contains("month")) {
                 multiplier = 2629743.83;
+                unit = "month";
             } else if (input.contains("year")) {
                 multiplier = 31556926;
+                unit = "year";
             }
         }
 
@@ -896,7 +962,9 @@ public class MainActivity extends AppCompatActivity implements
             }
         }
         output += result * multiplier;
-        System.out.println("Number result: " + output);
-        return output;
+        returnResult[0] = output;
+        returnResult[1] = unit;
+        System.out.println("Number result: " + returnResult[0] + " " + returnResult[1]);
+        return returnResult;
     }
 }
