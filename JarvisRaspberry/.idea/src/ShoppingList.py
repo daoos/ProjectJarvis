@@ -5,65 +5,70 @@
 shoppingLists = {}
 
 class ShoppingList:
+
     def __init__(self, name):
         self.name = name
-        # The shopping list, Item: Amount
-        self.list = {}
-        shoppingLists.setdefault(self, list)
+        itemDict = {}
+        self.itemDict = itemDict
+        shoppingLists[name] = itemDict
 
     def __repr__(self):
-        return "<Shopping list:%s List contains:%s>" % (self.name, self.list)
+        return "<Shopping list:%s List contains:%s>" % (self.name, self.itemDict)
 
     def __str__(self):
-        return "From str method of Shopping list: %s, %s" % (self.name, self.list)
+        return "Shopping list %s contains: %s" % (self.name, self.itemDict)
 
     def addItem(self, item, amount):
-        if (int(amount) > 0):
-            self.list.setdefault(item, amount)
-            print("ADDING " + item + " to " + self.name)
-            message = item + " " + str(amount) + " has been added to the shoppinglist " + self.name
+        if (item != "nothing"):
+            if (int(amount) > 0):
+                self.itemDict.setdefault(item, amount)
+                message = item + " " + str(amount) + " has been added to the shoppinglist " + self.name
+            else:
+                self.itemDict.setdefault(item, 1)
+                message = "One " + str(item) + " has been added to the shoppinglist " + self.name
         else:
-            self.list.setdefault(item, 1)
-            message = "I added one of " + str(item)
+            message = item + "has been added to " + self.name
         return message
 
-    def removeItem(self, item):
-        print("REMOVING " + item + " from " + self.name)
-        del self.list[item]
-        return str(item + "has been removed")
+    def removeItem(self, item, amount):
+        if (int(amount) > 0):
+            currentAmount = self.itemDict.get(item)
+            newAmount = currentAmount - amount
+            self.itemDict.setdefault(item, newAmount)
+            message =  str(amount) + " " + item + " has been removed from the shoppinglist " + self.name
+        else:
+            del self.itemDict[item]
+            self.itemDict.setdefault(item, 1)
+            message = "All " + item + " has been removed from the shoppinglist " + self.name
+        return message
 
-    def getList(self):
-        return self.list
+    #TODO: Change amount of item?
 
 def deleteList(name):
-    print(name)
-    print("^^^^^^^^^^")
-    print(shoppingLists)
-    print("New test: " + shoppingLists[name]['Bil'])
-    shoppingList = shoppingLists.get(name)
-    if name in shoppingLists:
-        print("!!!" + name + "exists")
-
     if shoppingLists.get(name) is not None:
         del shoppingLists[name]
-        print("DELETED! Shoppinglists now contains " + str(shoppingLists))
+        message = "Removed shopping list: " + name
     else:
-        print("43: The shopping list '" + str(name) + "' doesn't exist")
-
-
-def listAllLists():
-    print("ALL SHOPPING LISTS: " + str(shoppingLists))
-    # publish(feedback_topic, shoppingLists, 1)
-
+        message = "The shopping list '" + str(name) + "' doesn't exist"
+    return message
 
 def readList(name):
     shoppingList = shoppingLists.get(name)
     if shoppingList is not None:
-        print(str(name) + " exists!")
         listItems = ""
         for item in shoppingList:
-            listItems + item + ", "
+            listItems += item + ", "
         message = "The list " + name + " contains: " + listItems + "if anything is missing, please add it."
     else:
         message ="That shopping list doesn't exist"
     return message
+
+def listAllLists():
+    print("ALL SHOPPING LISTS: " + str(shoppingLists))
+    allLists = "Current shopping lists are: "
+    if not shoppingLists:
+        allLists += "\n" + "NONE"
+    else:
+        for key in shoppingLists.keys():
+            allLists += "\n" + str(key).title()
+    return allLists
