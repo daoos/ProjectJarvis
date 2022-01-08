@@ -470,19 +470,47 @@ public class MainActivity extends AppCompatActivity implements
                 if (input.contains("create") || input.contains("make")) {
                     String listName = findName(input);
                     publish(SHOPPING_LIST_CREATE, listName);
-                } else if ((input.contains("delete") || input.contains("remove"))
-                        && !input.contains("from")) {
+                } else if (input.contains("delete") || input.contains("remove")) {
                     String listName = findName(input);
-                    publish(SHOPPING_LIST_DELETE, listName);
+                    if (!input.contains("from")) {
+                        publish(SHOPPING_LIST_DELETE, listName);
+                    } else {
+                        String item = "nothing";
+                        String strAmount = "all";
+                        Object[] numbers = findNumbers(input);
+                        long amount = (long) numbers[0];
+                        if (amount != 0) {
+                            strAmount = String.valueOf(amount);;
+                        }
+                        if (!String.valueOf(amount).equals("0")) {
+                            item = findWordsBetween(input, (String) numbers[2], "from");
+                        } else if (input.contains(" a ")) {
+                            item = findWordsBetween(input, "a", "from");
+                        } else if (input.contains(" the ")) {
+                            item = findWordsBetween(input, "the", "from");
+                        } else if (input.contains(" an ")) {
+                            item = findWordsBetween(input, "an", "from");
+                        } else {
+                            item = findWordsBetween(input, "remove", "from");
+                        }
+                        String name = findName(input);
+                        System.out.println("To be removed is: " + strAmount + " " + item);
+                        String[] keywords = {name, item};
+                        String command = cleanInput(input, keywords) + "," + strAmount;
+                        publish(SHOPPING_LIST_REMOVE, command);
+                    }
                 } else if (input.contains("list all")) {
                     publish(SHOPPING_LIST_READ_ALL, "list all");
                 } else if (input.contains("add") || input.contains("put")) {
                     //TODO: Fix
-                    String item = "nothing";
+                    String item;
+                    String strAmount;
                     Object[] numbers = findNumbers(input);
                     long amount = (long) numbers[0];
                     if (!String.valueOf(amount).equals("0")) {
-                        item = findWordsBetween(input, String.valueOf(amount), " to");
+                        item = findWordsBetween(input, (String) numbers[2], "to");
+                    }  else if (input.contains(" the ")) {
+                        item = findWordsBetween(input, "the", "from");
                     } else if (input.contains(" a ")) {
                         item = findWordsBetween(input, "a", "to");
                     } else if (input.contains(" an ")) {
@@ -491,11 +519,12 @@ public class MainActivity extends AppCompatActivity implements
                         item = findWordsBetween(input, "add", "to");
                     }
                     String name = findName(input);
-                    String strAmount = String.valueOf(amount);
-                    System.out.println("StrAmount to be added is: " + strAmount);
-                    String[] keywords = {name, item};
-                    String command = cleanInput(input, keywords) + "," + strAmount;
-                    publish(SHOPPING_LIST_ADD, command);
+                    strAmount = String.valueOf(amount);
+                    System.out.println("To be added is: " + strAmount + " " + item);
+//                    String[] keywords = {name, item};
+//                    String command = cleanInput(input, keywords) + "," + strAmount;
+//                    publish(SHOPPING_LIST_ADD, command);
+                    publish(SHOPPING_LIST_ADD, name + "," + item + "," + strAmount);
                 } else if (input.contains("read")) {
                     String name = findName(input);
                     publish(SHOPPING_LIST_READ, name);
@@ -506,17 +535,18 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    //TODO: Clean up.
     private String findWordsBetween(String input, String start, String end) {
-        Pattern pattern = Pattern.compile("(?<=\\b " + start + " \\b).*?(?=\\b " + end + " \\b)");
+        String regexString = Pattern.quote(start) + "(.*?)" + Pattern.quote(end);
+        Pattern pattern = Pattern.compile(regexString);
         Matcher matcher = pattern.matcher(input);
         StringBuilder stringBuilder = new StringBuilder();
         while (matcher.find()) {
             stringBuilder.append(matcher.group());
-            System.out.println("WORD MATCH: " + stringBuilder.toString());
         }
-        System.out.println("!!!!!!!! FINDWORDS BETWEEN, MATCHES = " + stringBuilder.toString());
-        return stringBuilder.toString();
+        String output = stringBuilder.toString();
+        output = output.replaceFirst(start, "");
+        output = output.substring(0, output.lastIndexOf(" "));
+        return output;
     }
 
     private String findWordsAfter(String input, String start) {
@@ -531,14 +561,13 @@ public class MainActivity extends AppCompatActivity implements
         return output.trim();
     }
 
-    //TODO: Replace findName usage with findWordsBetween and/or findWordsAfter
     private String findName(String input) {
         String name = "no name";
         if (input.contains("named ")) {
             if (!input.contains("and")) {
-                name = findWordsAfter(input, "name");
+                name = findWordsAfter(input, "named");
             } else {
-                name = findWordsBetween(input, "name", "and");
+                name = findWordsBetween(input, "named", "and");
             }
         } else if (input.contains("name ")) {
             if (!input.contains("and")) {
@@ -609,7 +638,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     //Only accepts time in 24h-format
-    //TODO: ALARM-METHOD
+    //TODO: ALARM-METHOD, doesn't quite work...
     private String createAlarm(String input) {
         //TODO: GOAL: tomorrow,17:00 - use cleanInput!
         //TODO: name,every-day,8:00
@@ -669,6 +698,7 @@ public class MainActivity extends AppCompatActivity implements
                 (exception) -> setErrorState("Failed to unpack the model " + exception.getMessage()));
     }
 
+    //Handles the permissionrequest for recording audio
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -841,13 +871,11 @@ public class MainActivity extends AppCompatActivity implements
         double multiplier = 1; //Amount of seconds the numbers are worth
         long result = 0;
         long output = 0;
-        String resultString = ""; //TODO: Add?
+        StringBuilder oldString = new StringBuilder();
         String unit = "second";
-        Object[] returnResult = {output, unit};
+        Object[] returnResult = {output, unit, ""};
 
         //TODO: IF input contains "at 8" / one of the days, fetch a calendar time instead?
-
-        //TODO: OR, maybe make findNumbers return a long[]?
 
         List<String> allowedStrings = Arrays.asList
                 (
@@ -897,86 +925,122 @@ public class MainActivity extends AppCompatActivity implements
         String[] words = input.trim().split("\\s+");
         for (String str : words) {
             if (allowedStrings.contains(str)) {
-                if (str.equalsIgnoreCase("zero")) {
+                if (str.equals("zero")) {
                     result += 0;
-                } else if (str.equalsIgnoreCase("one")) {
+                    oldString.append(" zero ");
+                } else if (str.equals("one")) {
                     result += 1;
-                } else if (str.equalsIgnoreCase("two")) {
+                    oldString.append(" one ");
+                } else if (str.equals("two")) {
                     result += 2;
-                } else if (str.equalsIgnoreCase("three")) {
+                    oldString.append(" two ");
+                } else if (str.equals("three")) {
                     result += 3;
-                } else if (str.equalsIgnoreCase("four")) {
+                    oldString.append(" three ");
+                } else if (str.equals("four")) {
                     result += 4;
-                } else if (str.equalsIgnoreCase("five")) {
+                    oldString.append(" four ");
+                } else if (str.equals("five")) {
                     result += 5;
-                } else if (str.equalsIgnoreCase("six")) {
+                    oldString.append(" five ");
+                } else if (str.equals("six")) {
                     result += 6;
-                } else if (str.equalsIgnoreCase("seven")) {
+                    oldString.append(" six ");
+                } else if (str.equals("seven")) {
                     result += 7;
-                } else if (str.equalsIgnoreCase("eight")) {
+                    oldString.append(" seven ");
+                } else if (str.equals("eight")) {
                     result += 8;
-                } else if (str.equalsIgnoreCase("nine")) {
+                    oldString.append(" eight ");
+                } else if (str.equals("nine")) {
                     result += 9;
-                } else if (str.equalsIgnoreCase("ten")) {
+                    oldString.append(" nine ");
+                } else if (str.equals("ten")) {
                     result += 10;
-                } else if (str.equalsIgnoreCase("eleven")) {
+                    oldString.append(" ten ");
+                } else if (str.equals("eleven")) {
                     result += 11;
-                } else if (str.equalsIgnoreCase("twelve")) {
+                    oldString.append(" eleven ");
+                } else if (str.equals("twelve")) {
                     result += 12;
-                } else if (str.equalsIgnoreCase("thirteen")) {
+                    oldString.append(" twelve ");
+                } else if (str.equals("thirteen")) {
                     result += 13;
-                } else if (str.equalsIgnoreCase("fourteen")) {
+                    oldString.append(" thirteen ");
+                } else if (str.equals("fourteen")) {
                     result += 14;
-                } else if (str.equalsIgnoreCase("fifteen")) {
+                    oldString.append(" fourteen ");
+                } else if (str.equals("fifteen")) {
                     result += 15;
-                } else if (str.equalsIgnoreCase("sixteen")) {
+                    oldString.append(" fifteen ");
+                } else if (str.equals("sixteen")) {
                     result += 16;
-                } else if (str.equalsIgnoreCase("seventeen")) {
+                    oldString.append(" sixteen ");
+                } else if (str.equals("seventeen")) {
                     result += 17;
-                } else if (str.equalsIgnoreCase("eighteen")) {
+                    oldString.append(" seventeen ");
+                } else if (str.equals("eighteen")) {
                     result += 18;
-                } else if (str.equalsIgnoreCase("nineteen")) {
+                    oldString.append(" eighteen ");
+                } else if (str.equals("nineteen")) {
                     result += 19;
-                } else if (str.equalsIgnoreCase("twenty")) {
+                    oldString.append(" nineteen ");
+                } else if (str.equals("twenty")) {
                     result += 20;
-                } else if (str.equalsIgnoreCase("thirty")) {
+                    oldString.append(" twenty ");
+                } else if (str.equals("thirty")) {
                     result += 30;
-                } else if (str.equalsIgnoreCase("forty")) {
+                    oldString.append(" thirty ");
+                } else if (str.equals("forty")) {
                     result += 40;
-                } else if (str.equalsIgnoreCase("fifty")) {
+                    oldString.append(" forty ");
+                } else if (str.equals("fifty")) {
                     result += 50;
-                } else if (str.equalsIgnoreCase("sixty")) {
+                    oldString.append(" fifty ");
+                } else if (str.equals("sixty")) {
                     result += 60;
-                } else if (str.equalsIgnoreCase("seventy")) {
+                    oldString.append(" sixty ");
+                } else if (str.equals("seventy")) {
                     result += 70;
-                } else if (str.equalsIgnoreCase("eighty")) {
+                    oldString.append(" seventy ");
+                } else if (str.equals("eighty")) {
                     result += 80;
-                } else if (str.equalsIgnoreCase("ninety")) {
+                    oldString.append(" eighty ");
+                } else if (str.equals("ninety")) {
                     result += 90;
-                } else if (str.equalsIgnoreCase("hundred")) {
+                    oldString.append(" ninety ");
+                } else if (str.equals("hundred")) {
                     result *= 100;
-                } else if (str.equalsIgnoreCase("thousand")) {
+                    oldString.append(" hundred ");
+                } else if (str.equals("thousand")) {
                     result *= 1000;
                     output += result;
                     result = 0;
-                } else if (str.equalsIgnoreCase("million")) {
+                    oldString.append(" thousand ");
+                } else if (str.equals("million")) {
                     result *= 1000000;
                     output += result;
                     result = 0;
-                } else if (str.equalsIgnoreCase("billion")) {
+                    oldString.append(" million ");
+                } else if (str.equals("billion")) {
                     result *= 1000000000;
                     output += result;
                     result = 0;
-                } else if (str.equalsIgnoreCase("trillion")) {
+                    oldString.append(" billion ");
+                } else if (str.equals("trillion")) {
                     result *= 1000000000000L;
                     output += result;
                     result = 0;
+                    oldString.append(" trillion ");
                 }
             }
         }
         output += result * multiplier;
         returnResult[0] = output;
         returnResult[1] = unit;
+        if (oldString.length() != 0) {
+            returnResult[2] = oldString.toString();
+        }
         System.out.println("Number result: " + returnResult[0] + " " + returnResult[1]);
         return returnResult;
     }
