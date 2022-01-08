@@ -38,10 +38,7 @@ feedback_topic = "project-jarvis/feedback"  # send feedback after activation
     ## topics + dateTime(dateTime for generating could be included in the device_list_topic, or simply decode using the
     ## same algorithm). Would allow us to use different tellsticks without hardcoding their keys here.
 # This is where to insert your generated API keys (http://api.telldus.com/keys)
-pubkey = "FEHUVEW84RAFR5SP22RABURUPHAFRUNU"  # Public Key
-privkey = "ZUXEVEGA9USTAZEWRETHAQUBUR69U6EF"  # Private Key
-token = "a105fc203e00fd0d0958db3bace92026061b226ad"  # Token
-secret = "b2368173e0fc4d83b8ffcc946fce97aa"  # Token Secret
+
 
 #Used for get-requests
 localtime = time.localtime(time.time())
