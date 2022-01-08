@@ -35,7 +35,7 @@
     <property name="project.structure.last.edited" value="Global Libraries" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -49,7 +49,20 @@
       <workItem from="1639566143069" duration="500000" />
       <workItem from="1640092806864" duration="13519000" />
       <workItem from="1640170652114" duration="252000" />
-      <workItem from="1640693126757" duration="796000" />
+      <workItem from="1640693126757" duration="5948000" />
+      <workItem from="1640857501022" duration="19802000" />
+      <workItem from="1640950436259" duration="9663000" />
+      <workItem from="1641066464175" duration="21244000" />
+      <workItem from="1641121071950" duration="13420000" />
+      <workItem from="1641197052250" duration="1581000" />
+      <workItem from="1641200708884" duration="4038000" />
+      <workItem from="1641221755961" duration="21904000" />
+      <workItem from="1641301009916" duration="19596000" />
+      <workItem from="1641387032614" duration="2641000" />
+      <workItem from="1641389945993" duration="380000" />
+      <workItem from="1641415262068" duration="7052000" />
+      <workItem from="1641485920485" duration="1967000" />
+      <workItem from="1641649909651" duration="12956000" />
     </task>
     <servers />
   </component>
