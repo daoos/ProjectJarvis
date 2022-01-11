@@ -925,113 +925,147 @@ public class MainActivity extends AppCompatActivity implements
         String[] words = input.trim().split("\\s+");
         for (String str : words) {
             if (allowedStrings.contains(str)) {
-                if (str.equals("zero")) {
-                    result += 0;
-                    oldString.append(" zero ");
-                } else if (str.equals("one")) {
-                    result += 1;
-                    oldString.append(" one ");
-                } else if (str.equals("two")) {
-                    result += 2;
-                    oldString.append(" two ");
-                } else if (str.equals("three")) {
-                    result += 3;
-                    oldString.append(" three ");
-                } else if (str.equals("four")) {
-                    result += 4;
-                    oldString.append(" four ");
-                } else if (str.equals("five")) {
-                    result += 5;
-                    oldString.append(" five ");
-                } else if (str.equals("six")) {
-                    result += 6;
-                    oldString.append(" six ");
-                } else if (str.equals("seven")) {
-                    result += 7;
-                    oldString.append(" seven ");
-                } else if (str.equals("eight")) {
-                    result += 8;
-                    oldString.append(" eight ");
-                } else if (str.equals("nine")) {
-                    result += 9;
-                    oldString.append(" nine ");
-                } else if (str.equals("ten")) {
-                    result += 10;
-                    oldString.append(" ten ");
-                } else if (str.equals("eleven")) {
-                    result += 11;
-                    oldString.append(" eleven ");
-                } else if (str.equals("twelve")) {
-                    result += 12;
-                    oldString.append(" twelve ");
-                } else if (str.equals("thirteen")) {
-                    result += 13;
-                    oldString.append(" thirteen ");
-                } else if (str.equals("fourteen")) {
-                    result += 14;
-                    oldString.append(" fourteen ");
-                } else if (str.equals("fifteen")) {
-                    result += 15;
-                    oldString.append(" fifteen ");
-                } else if (str.equals("sixteen")) {
-                    result += 16;
-                    oldString.append(" sixteen ");
-                } else if (str.equals("seventeen")) {
-                    result += 17;
-                    oldString.append(" seventeen ");
-                } else if (str.equals("eighteen")) {
-                    result += 18;
-                    oldString.append(" eighteen ");
-                } else if (str.equals("nineteen")) {
-                    result += 19;
-                    oldString.append(" nineteen ");
-                } else if (str.equals("twenty")) {
-                    result += 20;
-                    oldString.append(" twenty ");
-                } else if (str.equals("thirty")) {
-                    result += 30;
-                    oldString.append(" thirty ");
-                } else if (str.equals("forty")) {
-                    result += 40;
-                    oldString.append(" forty ");
-                } else if (str.equals("fifty")) {
-                    result += 50;
-                    oldString.append(" fifty ");
-                } else if (str.equals("sixty")) {
-                    result += 60;
-                    oldString.append(" sixty ");
-                } else if (str.equals("seventy")) {
-                    result += 70;
-                    oldString.append(" seventy ");
-                } else if (str.equals("eighty")) {
-                    result += 80;
-                    oldString.append(" eighty ");
-                } else if (str.equals("ninety")) {
-                    result += 90;
-                    oldString.append(" ninety ");
-                } else if (str.equals("hundred")) {
-                    result *= 100;
-                    oldString.append(" hundred ");
-                } else if (str.equals("thousand")) {
-                    result *= 1000;
-                    output += result;
-                    result = 0;
-                    oldString.append(" thousand ");
-                } else if (str.equals("million")) {
-                    result *= 1000000;
-                    output += result;
-                    result = 0;
-                    oldString.append(" million ");
-                } else if (str.equals("billion")) {
-                    result *= 1000000000;
-                    output += result;
-                    result = 0;
-                    oldString.append(" billion ");
-                } else if (str.equals("trillion")) {
-                    result *= 1000000000000L;
-                    output += result;
-                    result = 0;
-                    oldString.append(" trillion ");
+                switch (str) {
+                    case "zero":
+                        result += 0;
+                        oldString.append(" zero ");
+                        break;
+                    case "one":
+                        result += 1;
+                        oldString.append(" one ");
+                        break;
+                    case "two":
+                        result += 2;
+                        oldString.append(" two ");
+                        break;
+                    case "three":
+                        result += 3;
+                        oldString.append(" three ");
+                        break;
+                    case "four":
+                        result += 4;
+                        oldString.append(" four ");
+                        break;
+                    case "five":
+                        result += 5;
+                        oldString.append(" five ");
+                        break;
+                    case "six":
+                        result += 6;
+                        oldString.append(" six ");
+                        break;
+                    case "seven":
+                        result += 7;
+                        oldString.append(" seven ");
+                        break;
+                    case "eight":
+                        result += 8;
+                        oldString.append(" eight ");
+                        break;
+                    case "nine":
+                        result += 9;
+                        oldString.append(" nine ");
+                        break;
+                    case "ten":
+                        result += 10;
+                        oldString.append(" ten ");
+                        break;
+                    case "eleven":
+                        result += 11;
+                        oldString.append(" eleven ");
+                        break;
+                    case "twelve":
+                        result += 12;
+                        oldString.append(" twelve ");
+                        break;
+                    case "thirteen":
+                        result += 13;
+                        oldString.append(" thirteen ");
+                        break;
+                    case "fourteen":
+                        result += 14;
+                        oldString.append(" fourteen ");
+                        break;
+                    case "fifteen":
+                        result += 15;
+                        oldString.append(" fifteen ");
+                        break;
+                    case "sixteen":
+                        result += 16;
+                        oldString.append(" sixteen ");
+                        break;
+                    case "seventeen":
+                        result += 17;
+                        oldString.append(" seventeen ");
+                        break;
+                    case "eighteen":
+                        result += 18;
+                        oldString.append(" eighteen ");
+                        break;
+                    case "nineteen":
+                        result += 19;
+                        oldString.append(" nineteen ");
+                        break;
+                    case "twenty":
+                        result += 20;
+                        oldString.append(" twenty ");
+                        break;
+                    case "thirty":
+                        result += 30;
+                        oldString.append(" thirty ");
+                        break;
+                    case "forty":
+                        result += 40;
+                        oldString.append(" forty ");
+                        break;
+                    case "fifty":
+                        result += 50;
+                        oldString.append(" fifty ");
+                        break;
+                    case "sixty":
+                        result += 60;
+                        oldString.append(" sixty ");
+                        break;
+                    case "seventy":
+                        result += 70;
+                        oldString.append(" seventy ");
+                        break;
+                    case "eighty":
+                        result += 80;
+                        oldString.append(" eighty ");
+                        break;
+                    case "ninety":
+                        result += 90;
+                        oldString.append(" ninety ");
+                        break;
+                    case "hundred":
+                        result *= 100;
+                        oldString.append(" hundred ");
+                        break;
+                    case "thousand":
+                        result *= 1000;
+                        output += result;
+                        result = 0;
+                        oldString.append(" thousand ");
+                        break;
+                    case "million":
+                        result *= 1000000;
+                        output += result;
+                        result = 0;
+                        oldString.append(" million ");
+                        break;
+                    case "billion":
+                        result *= 1000000000;
+                        output += result;
+                        result = 0;
+                        oldString.append(" billion ");
+                        break;
+                    case "trillion":
+                        result *= 1000000000000L;
+                        output += result;
+                        result = 0;
+                        oldString.append(" trillion ");
+                        break;
                 }
             }
         }
