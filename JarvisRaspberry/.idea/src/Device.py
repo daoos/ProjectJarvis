@@ -12,7 +12,6 @@ class Device:
         ## the values from the class object
         device = {"topic":topic, "id":id, "state":state}
         devices[name] = device
-        print(devices)
 
     def __repr__(self):
         return "<Device name:%s id:%s>" % (self.name, self.id)
