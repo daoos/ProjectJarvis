@@ -39,7 +39,6 @@ feedback_topic = "project-jarvis/feedback"  # send feedback after activation
     ## same algorithm). Would allow us to use different tellsticks without hardcoding their keys here.
 # This is where to insert your generated API keys (http://api.telldus.com/keys)
 
-
 #Used for get-requests
 localtime = time.localtime(time.time())
 timestamp = str(time.mktime(localtime))
@@ -120,7 +119,11 @@ def on_message(client, userdata, msg):
             client.publish(feedback_topic, "Failed to remove " + item + " from the shopping list " + name + ". List not found", 1)
         #READ LIST ALOUD
     elif (msg.topic == shopping_list_read):
-        client.publish(feedback_topic, readList(command), 1)
+        if (shoppingLists.get(command)) is not None:
+            client.publish(feedback_topic, readList(command), 1)
+        else:
+            print("Not found, Lists are: " + str(shoppingLists))
+            client.publish(feedback_topic, "That shopping list doesn't exist", 1)
         #LISTS ALL LISTS
     elif (msg.topic == shopping_list_read_all):
         client.publish(feedback_topic, listAllLists(), 1)
@@ -138,8 +141,8 @@ def on_message(client, userdata, msg):
         elif deviceName in deviceGroups:
             if "setName" in command:
                 newName = commandList[1]
-                setTimedCommand(commandList[0], commandList[1], devices.get(deviceName).get("id"), newName)
-            setTimedCommand(commandList[0], commandList[1], devices.get(deviceName).get("id"), deviceName)
+                setTimedCommand(commandList[0], commandList[1], deviceGroups.get(deviceName).get("id"), newName)
+            setTimedCommand(commandList[0], commandList[1], deviceGroups.get(deviceName).get("id"), deviceName)
         else:
             splitCommand = command.rpartition("/")
             feedback = "ERROR: "+ splitCommand[len(splitCommand)-1] + ". Device not found"
@@ -324,6 +327,8 @@ def action(command, id, name):
             feedback = "Turned on " + name
         elif ("off" in command):
             feedback = "Turned off " + name
+        elif ("bell" in command):
+            feedback = "Ringing the bell on " + name
         else:
             feedback = "Can't identify the command. Applied command " + command + " to " + name
     client.publish(feedback_topic, feedback)
@@ -351,24 +356,28 @@ def main():
     updateDevices()
     client.loop_start()
 
-    ## TESTING
-    toyList = ShoppingList("toys")
-    toyList.addItem("car", 1)
-    toyList.addItem("camera", 2)
-    toyList.addItem("zebra", 3)
-    toyList.removeItem("zebra", 2)
-    shoppingLists.setdefault(toyList)
-    foodList = ShoppingList("food")
-    shoppingLists.setdefault(foodList)
-    listAllLists()
-    client.publish(feedback_topic, readList(toyList))
-    ## END TESTING
+    # ## TESTING
+    # ShoppingList("toys")
+    # toyList = shoppingLists.get("toys")
+    # print(toyList)
+    # toyList.addItem("car", 1)
+    # toyList.addItem("camera", 2)
+    # toyList.addItem("zebra", 3)
+    # toyList.removeItem("zebra", 2)
+    # # shoppingLists.setdefault(toyList)
+    # ShoppingList("food")
+    # foodList = shoppingLists.get("food")
+    # # shoppingLists.setdefault(foodList)
+    # print(listAllLists())
+    # readList(toyList)
+    # # client.publish(feedback_topic, readList(toyList))
+    # ## END TESTING
 
     while True:
         time.sleep(5)
         data_to_send = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-        client.publish(running_topic, str("running " + data_to_send), 1)
-        print(commandTimers)
+        print(data_to_send)
+        # client.publish(running_topic, str("running " + data_to_send), 1)
         updateDevices()
 
 main()  # runs the program
