@@ -4,6 +4,7 @@
 # ListName: DictOfItems+Amounts
 shoppingLists = {}
 
+
 class ShoppingList:
 
     def __init__(self, name):
@@ -13,7 +14,7 @@ class ShoppingList:
         shoppingLists[name] = itemDict
 
     def __repr__(self):
-        return "<Shopping list:%s List contains:%s>" % (self.name, self.itemDict)
+        return "<Shopping list:%s contains:%s>" % (self.name, self.itemDict)
 
     def __str__(self):
         return "Shopping list %s contains: %s" % (self.name, self.itemDict)
@@ -35,14 +36,13 @@ class ShoppingList:
             currentAmount = self.itemDict.get(item)
             newAmount = currentAmount - amount
             self.itemDict.setdefault(item, newAmount)
-            message =  str(amount) + " " + item + " has been removed from the shoppinglist " + self.name
+            message = str(amount) + " " + item + " has been removed from the shoppinglist " + self.name
         else:
             del self.itemDict[item]
             self.itemDict.setdefault(item, 1)
             message = "All " + item + " has been removed from the shoppinglist " + self.name
         return message
 
-    #TODO: Change amount of item?
 
 def deleteList(name):
     if shoppingLists.get(name) is not None:
@@ -52,16 +52,15 @@ def deleteList(name):
         message = "The shopping list '" + str(name) + "' doesn't exist"
     return message
 
+
 def readList(name):
     shoppingList = shoppingLists.get(name)
-    if shoppingList is not None:
-        listItems = ""
-        for item in shoppingList:
-            listItems += item + ", "
-        message = "The list " + name + " contains: " + listItems + "if anything is missing, please add it."
-    else:
-        message ="That shopping list doesn't exist"
-    return message
+    listItems = ""
+    print("Shopping list is: " + str(shoppingList))
+    for key in shoppingList:
+        listItems += shoppingList.get(key) + ", " + key
+    return "The list " + name + " contains: " + listItems
+
 
 def listAllLists():
     print("ALL SHOPPING LISTS: " + str(shoppingLists))
