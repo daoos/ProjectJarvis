@@ -114,11 +114,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private EditText cityInput;
     private TextView weatherResult;
-    //String weatherResult;
-    private static final String URL = "https://api.openweathermap.org/data/2.5/weather";
-    private static final String APP_ID = "f867fac52bdc5a485eb681e29989f284";
-    //Old: e53301e27efa0b66d05045d91b2742d3
-    //New: f867fac52bdc5a485eb681e29989f284
+    //Weather API stuff here
 
 
     @Override
