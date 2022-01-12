@@ -123,14 +123,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/turnOnBtn" />
 
-    <!--
     <TextView
         android:id="@+id/weatherResult"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="316dp"
+        android:layout_marginBottom="22dp"
         android:text="Weather  result"
-        app:layout_constraintTop_toBottomOf="@+id/recognize_mic"
-        tools:layout_editor_absoluteX="0dp" />
+        app:layout_constraintBottom_toTopOf="@+id/voiceInput"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recognize_mic" />
 
     <EditText
         android:id="@+id/cityInput"
@@ -142,7 +145,6 @@
         android:inputType="textPersonName"
         app:layout_constraintBottom_toTopOf="@+id/weatherResult"
         app:layout_constraintStart_toStartOf="parent" />
-    -->
 
     <!--
     <Button

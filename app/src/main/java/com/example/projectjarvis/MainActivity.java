@@ -50,7 +50,6 @@ import org.vosk.android.StorageService;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -59,7 +58,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.function.LongToIntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -114,12 +112,11 @@ public class MainActivity extends AppCompatActivity implements
     private SpeechStreamService speechStreamService;
     private TextView voiceInput;
 
-
-    EditText cityInput;
-    TextView weatherResult;
+    private EditText cityInput;
+    private TextView weatherResult;
     //String weatherResult;
-    private final String url = "https://api.openweathermap.org/data/2.5/weather";
-    private final String appid = "f867fac52bdc5a485eb681e29989f284";
+    private static final String URL = "https://api.openweathermap.org/data/2.5/weather";
+    private static final String APP_ID = "f867fac52bdc5a485eb681e29989f284";
     //Old: e53301e27efa0b66d05045d91b2742d3
     //New: f867fac52bdc5a485eb681e29989f284
 
@@ -129,8 +126,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //cityInput = findViewById(R.id.cityInput);
-        //weatherResult = findViewById(R.id.weatherResult);
+        cityInput = findViewById(R.id.cityInput);
+        weatherResult = findViewById(R.id.weatherResult);
 
         //------Vosk
         voiceInput = findViewById(R.id.voiceInput); //textview for showing the voice input
@@ -161,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements
 
         ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
 
-        //TTS OnInit NOTE: Can't set locale on virtual machine
+        //TTS OnInit
         textToSpeech = new TextToSpeech(getApplicationContext(), status -> {
             if (status != TextToSpeech.ERROR) {
                 textToSpeech.setLanguage(Locale.US);
@@ -174,7 +171,6 @@ public class MainActivity extends AppCompatActivity implements
 
 
         //MQTT Connect
-
         try {
             mqttConnect();
         } catch (MqttException e) {
@@ -242,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements
                                 alarmControl("stop");
                             }
                         } catch (Exception e) {
-                            System.out.println("Alarm error");
+                            System.out.println("Alarm error" + e.toString());
                             e.printStackTrace();
                         }
                         break;
@@ -443,12 +439,9 @@ public class MainActivity extends AppCompatActivity implements
                 long numbers = (long) getNumbers[0];
                 String[] keywords = {"set", "timer"};
                 String toSend = cleanInput(input, keywords);
-                //WHAT SHOULD BE SENT IS: set,timer,(n)time
-                System.out.println("TO SEND IS: " + toSend + numbers);
                 publish(TIMER_TOPIC_CREATE, toSend + numbers);
-            } else if (input.contains("set") || input.contains("create")
+            } else if ((input.contains("set") || input.contains("create"))
                     && input.contains("alarm")) {
-                System.out.println("CREATE ALARM");
                 System.out.println("CREATED ALARM: " + createAlarm(input));
                 //TODO: String STRING = createAlarm(input);
 //TODO:            publish(ALARM_TOPIC_CREATE, STRING:(name,every-day,8:00));
@@ -458,13 +451,13 @@ public class MainActivity extends AppCompatActivity implements
             } else if (input.contains("what") && input.contains("time") &&
                     ((input.contains("is it") || input.contains("is the"))
                             || input.contains("'s the"))) {
-//                String time = ;
                 feedback("The time is " + stringTime(getCurrentTime()));
             } else if (input.contains("what") && (input.contains("is the")
                     || input.contains("'s the")) && input.contains("weather")) {
-                System.out.println("WEATHER");
-                cityInput.setText(input.substring(input.lastIndexOf(" ") + 1)); //detect city
-                //feedback(getWeatherDetails(input.substring(input.lastIndexOf(" ") + 1)));
+                String cityName = findWordsAfter(input, "in");
+                if (!cityName.equals("")) {
+                    cityInput.setText(cityName); //detect city
+                }
                 getWeatherDetails();
             } else if (input.contains("shopping list")) {
                 if (input.contains("create") || input.contains("make")) {
@@ -480,7 +473,8 @@ public class MainActivity extends AppCompatActivity implements
                         Object[] numbers = findNumbers(input);
                         long amount = (long) numbers[0];
                         if (amount != 0) {
-                            strAmount = String.valueOf(amount);;
+                            strAmount = String.valueOf(amount);
+                            ;
                         }
                         if (!String.valueOf(amount).equals("0")) {
                             item = findWordsBetween(input, (String) numbers[2], "from");
@@ -499,8 +493,11 @@ public class MainActivity extends AppCompatActivity implements
                         String command = cleanInput(input, keywords) + "," + strAmount;
                         publish(SHOPPING_LIST_REMOVE, command);
                     }
-                } else if (input.contains("list all")) {
+                } else if (input.contains("list all") || input.contains("read all")) {
                     publish(SHOPPING_LIST_READ_ALL, "list all");
+                } else if (input.contains(" read ")) {
+                    String name = findName(input);
+                    publish(SHOPPING_LIST_READ, name);
                 } else if (input.contains("add") || input.contains("put")) {
                     //TODO: Fix
                     String item;
@@ -509,7 +506,7 @@ public class MainActivity extends AppCompatActivity implements
                     long amount = (long) numbers[0];
                     if (!String.valueOf(amount).equals("0")) {
                         item = findWordsBetween(input, (String) numbers[2], "to");
-                    }  else if (input.contains(" the ")) {
+                    } else if (input.contains(" the ")) {
                         item = findWordsBetween(input, "the", "from");
                     } else if (input.contains(" a ")) {
                         item = findWordsBetween(input, "a", "to");
@@ -525,9 +522,6 @@ public class MainActivity extends AppCompatActivity implements
 //                    String command = cleanInput(input, keywords) + "," + strAmount;
 //                    publish(SHOPPING_LIST_ADD, command);
                     publish(SHOPPING_LIST_ADD, name + "," + item + "," + strAmount);
-                } else if (input.contains("read")) {
-                    String name = findName(input);
-                    publish(SHOPPING_LIST_READ, name);
                 }
             } else {
                 feedback("No valid input, please try again!");
@@ -555,7 +549,6 @@ public class MainActivity extends AppCompatActivity implements
         Matcher nameMatcher = namePattern.matcher(input);
         if (nameMatcher.find()) {
             output = nameMatcher.group(1);
-            System.out.println("All words after: " + start + " are: " + output);
         }
         assert output != null;
         return output.trim();
@@ -588,12 +581,11 @@ public class MainActivity extends AppCompatActivity implements
     //Returns a String for the time instead of a Date object
     private String stringTime(Calendar calendar) {
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm", SWEDEN);
-        System.out.println("STRINGTIME IS: " + format.format(calendar.getTime()));
         //TODO: Decode the string into "DAY, the DATE" etc
         return format.format(calendar.getTime());
     }
 
-    //Gets the current local time in Stockholm
+    //Gets the current local time in Stockholm, regardless of saving-time
     //TODO: REMOVE?
     private Calendar getCurrentTime() {
         TimeZone timeZone = TimeZone.getTimeZone("Europe/Stockholm");
@@ -607,7 +599,6 @@ public class MainActivity extends AppCompatActivity implements
         StringBuilder outputBuilder = new StringBuilder();
         input = input.replace("/", ":");
         regexBuilder.append("(?i)\\b(");
-        System.out.println("Keyword length is : " + keywords.length);
         for (int i = 0; i < keywords.length; i++) {
             if (i != 0) {
                 regexBuilder.append("|");
@@ -644,18 +635,19 @@ public class MainActivity extends AppCompatActivity implements
         //TODO: name,every-day,8:00
         String alarmName = findName(input); //name of the alarm, if it has one
         Object[] inputNumbers = findNumbers(input); //amount of seconds to alarm
-        int addSeconds = (int) inputNumbers[0]; //TODO: FIX
+        long inputLong = (long) inputNumbers[0];
+        int addSeconds = (int) inputLong; //TODO: FIX
 
         String unit = (String) inputNumbers[1]; //TODO: Should return second/hour/day etc
 
         Calendar calendar = getCurrentTime();
-        System.out.println("Calendar time is " + calendar.getTime().toString());
+        System.out.println("CreateAlarm(): Calendar time is " + calendar.getTime().toString());
         calendar.add(Calendar.SECOND, addSeconds);
         long secToAlarm = (calendar.getTimeInMillis()) / 1000;
         int alarmLength = (int) secToAlarm;
 
-        System.out.println("ALARMLENGTH IS: " + alarmLength);
-        System.out.println("Alarm is set for " + calendar.getTime().toString());
+        System.out.println("CreateAlarm(): ALARMLENGTH IS " + alarmLength);
+        System.out.println("CreateAlarm(): Alarm is set for " + calendar.getTime().toString());
         String[] day = decodeDay(input);
         String[] keywords = {alarmName.trim(), String.valueOf(alarmLength), day[0], day[1]};
 
@@ -688,6 +680,7 @@ public class MainActivity extends AppCompatActivity implements
         return new String[]{special, day};
     }
 
+    //VOSK START
     //Finds and unpacks the VOSK model
     private void initModel() {
         StorageService.unpack(this, "model-en-us", "model",
@@ -739,7 +732,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     //Removes "text" from the String and the JSON-esque styling
-    private static String filter(String input) {
+    //TODO: was static, why?
+    private String filter(String input) {
         String cleanStr = input.replaceAll("[^A-Za-z0-9' ]", "")
                 .replaceAll(" +", " ");
         String[] words = cleanStr.trim().split(" ", 2);
@@ -826,10 +820,11 @@ public class MainActivity extends AppCompatActivity implements
                 throw new IllegalStateException("Unexpected value: " + state);
         }
     }
+    // VOSK END
 
     public void getWeatherDetails() {
         String city = cityInput.getText().toString().trim();
-        String tempUrl = url + "?q=" + city + "&appid=" + appid;
+        String tempUrl = URL + "?q=" + city + "&appid=" + APP_ID;
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, tempUrl, new Response.Listener<String>() {
             @Override
@@ -871,7 +866,7 @@ public class MainActivity extends AppCompatActivity implements
         double multiplier = 1; //Amount of seconds the numbers are worth
         long result = 0;
         long output = 0;
-        StringBuilder oldString = new StringBuilder();
+        StringBuilder numString = new StringBuilder();
         String unit = "second";
         Object[] returnResult = {output, unit, ""};
 
@@ -928,143 +923,143 @@ public class MainActivity extends AppCompatActivity implements
                 switch (str) {
                     case "zero":
                         result += 0;
-                        oldString.append(" zero ");
+                        numString.append(" zero ");
                         break;
                     case "one":
                         result += 1;
-                        oldString.append(" one ");
+                        numString.append(" one ");
                         break;
                     case "two":
                         result += 2;
-                        oldString.append(" two ");
+                        numString.append(" two ");
                         break;
                     case "three":
                         result += 3;
-                        oldString.append(" three ");
+                        numString.append(" three ");
                         break;
                     case "four":
                         result += 4;
-                        oldString.append(" four ");
+                        numString.append(" four ");
                         break;
                     case "five":
                         result += 5;
-                        oldString.append(" five ");
+                        numString.append(" five ");
                         break;
                     case "six":
                         result += 6;
-                        oldString.append(" six ");
+                        numString.append(" six ");
                         break;
                     case "seven":
                         result += 7;
-                        oldString.append(" seven ");
+                        numString.append(" seven ");
                         break;
                     case "eight":
                         result += 8;
-                        oldString.append(" eight ");
+                        numString.append(" eight ");
                         break;
                     case "nine":
                         result += 9;
-                        oldString.append(" nine ");
+                        numString.append(" nine ");
                         break;
                     case "ten":
                         result += 10;
-                        oldString.append(" ten ");
+                        numString.append(" ten ");
                         break;
                     case "eleven":
                         result += 11;
-                        oldString.append(" eleven ");
+                        numString.append(" eleven ");
                         break;
                     case "twelve":
                         result += 12;
-                        oldString.append(" twelve ");
+                        numString.append(" twelve ");
                         break;
                     case "thirteen":
                         result += 13;
-                        oldString.append(" thirteen ");
+                        numString.append(" thirteen ");
                         break;
                     case "fourteen":
                         result += 14;
-                        oldString.append(" fourteen ");
+                        numString.append(" fourteen ");
                         break;
                     case "fifteen":
                         result += 15;
-                        oldString.append(" fifteen ");
+                        numString.append(" fifteen ");
                         break;
                     case "sixteen":
                         result += 16;
-                        oldString.append(" sixteen ");
+                        numString.append(" sixteen ");
                         break;
                     case "seventeen":
                         result += 17;
-                        oldString.append(" seventeen ");
+                        numString.append(" seventeen ");
                         break;
                     case "eighteen":
                         result += 18;
-                        oldString.append(" eighteen ");
+                        numString.append(" eighteen ");
                         break;
                     case "nineteen":
                         result += 19;
-                        oldString.append(" nineteen ");
+                        numString.append(" nineteen ");
                         break;
                     case "twenty":
                         result += 20;
-                        oldString.append(" twenty ");
+                        numString.append(" twenty ");
                         break;
                     case "thirty":
                         result += 30;
-                        oldString.append(" thirty ");
+                        numString.append(" thirty ");
                         break;
                     case "forty":
                         result += 40;
-                        oldString.append(" forty ");
+                        numString.append(" forty ");
                         break;
                     case "fifty":
                         result += 50;
-                        oldString.append(" fifty ");
+                        numString.append(" fifty ");
                         break;
                     case "sixty":
                         result += 60;
-                        oldString.append(" sixty ");
+                        numString.append(" sixty ");
                         break;
                     case "seventy":
                         result += 70;
-                        oldString.append(" seventy ");
+                        numString.append(" seventy ");
                         break;
                     case "eighty":
                         result += 80;
-                        oldString.append(" eighty ");
+                        numString.append(" eighty ");
                         break;
                     case "ninety":
                         result += 90;
-                        oldString.append(" ninety ");
+                        numString.append(" ninety ");
                         break;
                     case "hundred":
                         result *= 100;
-                        oldString.append(" hundred ");
+                        numString.append(" hundred ");
                         break;
                     case "thousand":
                         result *= 1000;
                         output += result;
                         result = 0;
-                        oldString.append(" thousand ");
+                        numString.append(" thousand ");
                         break;
                     case "million":
                         result *= 1000000;
                         output += result;
                         result = 0;
-                        oldString.append(" million ");
+                        numString.append(" million ");
                         break;
                     case "billion":
                         result *= 1000000000;
                         output += result;
                         result = 0;
-                        oldString.append(" billion ");
+                        numString.append(" billion ");
                         break;
                     case "trillion":
                         result *= 1000000000000L;
                         output += result;
                         result = 0;
-                        oldString.append(" trillion ");
+                        numString.append(" trillion ");
                         break;
                 }
             }
@@ -1072,10 +1067,9 @@ public class MainActivity extends AppCompatActivity implements
         output += result * multiplier;
         returnResult[0] = output;
         returnResult[1] = unit;
-        if (oldString.length() != 0) {
-            returnResult[2] = oldString.toString();
+        if (numString.length() != 0) {
+            returnResult[2] = numString.toString();
         }
-        System.out.println("Number result: " + returnResult[0] + " " + returnResult[1]);
         return returnResult;
     }
 }
